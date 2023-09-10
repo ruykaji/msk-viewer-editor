@@ -9,10 +9,6 @@ enum class TokenKind {
     RoundBracketClose,
     Comma,
 
-    WhiteSpace,
-    Tab,
-    NewLine,
-
     Rec,
 };
 

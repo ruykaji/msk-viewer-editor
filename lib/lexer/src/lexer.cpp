@@ -1,4 +1,3 @@
-#include <fstream>
 #include <sstream>
 
 #include "lexer.hpp"
@@ -14,52 +13,31 @@ inline bool isNumber(const std::string& t_str)
     return true;
 }
 
-inline bool isSpaceOnly(const std::string& t_str)
+std::vector<std::pair<TokenKind, TokenValue>> Lexer::tokenize(const std::string& t_file)
 {
-    for (auto& ch : t_str) {
-        if (ch != ' ' || ch != '\t') {
-            return false;
-        }
-    }
+    std::vector<std::pair<TokenKind, TokenValue>> tokens {};
 
-    return true;
-}
+    std::string token {};
+    TokenKind tokenKind {};
+    uint16_t position {};
 
-std::vector<std::pair<TokenKind, std::string>> Lexer::tokenize(const std::string& t_fileName)
-{
-    std::vector<std::pair<TokenKind, std::string>> tokens {};
-    std::ifstream fin { { t_fileName.begin(), t_fileName.end() } };
+    for (auto& ch : t_file) {
+        tokenKind = isSeparator(ch);
 
-    if (fin.is_open()) {
-        std::string token {};
-        TokenKind tokenKind {};
-        char ch;
-
-        while (fin >> std::noskipws >> ch) {
-            tokenKind = isSeparator(ch);
+        if (ch == ' ' || ch == '\t' || ch == '\n' || tokenKind != TokenKind::Word) {
+            if (!token.empty()) {
+                tokens.push_back(std::pair<TokenKind, TokenValue>(isKeyword(token), TokenValue(position - token.length(), position, token)));
+                token.clear();
+            }
 
             if (tokenKind != TokenKind::Word) {
-                if (tokenKind != TokenKind::WhiteSpace) {
-                    tokens.push_back(std::pair<TokenKind, std::string>(tokenKind, std::to_string(ch)));
-
-                    if (!token.empty()) {
-                        tokenKind = isKeyword(token);
-
-                        tokens.push_back(std::pair<TokenKind, std::string>(tokenKind, token));
-                        token.clear();
-                    }
-                } else {
-                    token += ch;
-                }
-            } else {
-                if (isSpaceOnly(token)) {
-                    tokens.push_back(std::pair<TokenKind, std::string>(TokenKind::WhiteSpace, token));
-                    token.clear();
-                }
-
-                token += ch;
+                tokens.push_back(std::pair<TokenKind, TokenValue>(tokenKind, TokenValue(position + 1, position + 1, std::string(1, ch))));
             }
+        } else {
+            token += ch;
         }
+
+        ++position;
     }
 
     return tokens;
@@ -74,11 +52,6 @@ TokenKind Lexer::isSeparator(const char t_ch)
         return TokenKind::RoundBracketOpen;
     case ',':
         return TokenKind::Comma;
-    case ' ':
-    case '\t':
-        return TokenKind::WhiteSpace;
-    case '\n':
-        return TokenKind::NewLine;
     default:
         return TokenKind::Word;
     }
