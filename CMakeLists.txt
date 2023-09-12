@@ -11,7 +11,7 @@ set(CMAKE_AUTORCC ON)
 set(SRC main.cpp ./src/MainWindow.cpp ./src/CodeEditorWidget.cpp)
 set(HDR ./include/MainWindow.hpp ./include/CodeEditorWidget.hpp)
 
-add_executable(main ${SRC} ${HDR})
+add_executable(main WIN32 ${SRC} ${HDR})
 
 target_link_libraries(main PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets lexer)
 target_include_directories(main PUBLIC include)

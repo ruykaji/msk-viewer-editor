@@ -5,34 +5,78 @@
 #include <iomanip>
 #include <iostream>
 
-static std::vector<std::string> tokensName = {
-    "Word",
-    "Number",
-    "RoundBracketOpen",
-    "RoundBracketClose",
-    "Comma",
-    "Rec",
-};
-
-TEST_CASE("Lexer manually checking.")
+TEST_CASE("Lexer should produce right tokens.")
 {
-    std::ifstream fin { "F:/projects/LayoutReader/Libs/LayoutReader/Test/MskFiles/inv.msk" };
-    std::string file {};
-    char ch;
+    std::string file { "SIMU #5.00\nREC ( -2, 120, 66, 30, NW )\nREC ( 49, 134, 1, 4, DP )" };
 
-    while (fin >> std::noskipws >> ch) {
-        file += ch;
-    }
+    static std::vector<TokenKind> tokensKind = {
+        TokenKind::STRING,
+        TokenKind::STRING,
+
+        TokenKind::REC,
+        TokenKind::LEFT_BRACE,
+        TokenKind::NUMBER,
+        TokenKind::COMMA,
+        TokenKind::NUMBER,
+        TokenKind::COMMA,
+        TokenKind::NUMBER,
+        TokenKind::COMMA,
+        TokenKind::NUMBER,
+        TokenKind::COMMA,
+        TokenKind::STRING,
+        TokenKind::RIGHT_BRACE,
+
+        TokenKind::REC,
+        TokenKind::LEFT_BRACE,
+        TokenKind::NUMBER,
+        TokenKind::COMMA,
+        TokenKind::NUMBER,
+        TokenKind::COMMA,
+        TokenKind::NUMBER,
+        TokenKind::COMMA,
+        TokenKind::NUMBER,
+        TokenKind::COMMA,
+        TokenKind::STRING,
+        TokenKind::RIGHT_BRACE,
+
+        TokenKind::END_OF_FILE
+    };
 
     Lexer lexer;
-    std::vector<std::pair<TokenKind, TokenValue>> tokens = lexer.tokenize(file);
+    std::vector<Token> tokens = lexer.tokenize(file);
 
-    for (auto& [first, second] : tokens) {
-        std::cout << std::setw(20) << tokensName[static_cast<int>(first)] << " |" << second.value << "|\n";
+    ASSERT(tokens.size() == tokensKind.size());
+
+    for (std::size_t i {}; i < tokens.size(); ++i) {
+        ASSERT(tokensKind[i] == tokens[i].kind);
+    }
+}
+
+TEST_CASE("Lexer token's should contain enough information to recreate original text.")
+{
+    std::string file { "SIMU #5.00\nREC ( -2, 120, 66, 30, NW )\nREC ( 49, 134, 1, 4, DP )" };
+    std::string newFile {};
+
+    Lexer lexer;
+    std::vector<Token> tokens = lexer.tokenize(file);
+
+    uint16_t cursor {};
+    uint16_t line {};
+
+    for (auto& token : tokens) {
+        if (line < token.line) {
+            ++line;
+            newFile += '\n';
+        }
+
+        if (newFile.length() < token.start) {
+            for (std::size_t i {}; i < token.start - newFile.length(); ++i) {
+                newFile += ' ';
+            }
+        }
+
+        newFile += token.literal;
     }
 
-    std::cout << '\n'
-              << std::flush;
-
-    ASSERT(true);
+    ASSERT(file == newFile);
 }

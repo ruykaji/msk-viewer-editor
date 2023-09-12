@@ -6,20 +6,14 @@
 #include <string_view>
 #include <vector>
 
-#include "token_kind.hpp"
-
-struct TokenValue {
-    uint16_t start {};
-    uint16_t end {};
-    std::string value {};
-
-    TokenValue(const uint16_t& t_start, const uint16_t& t_end, const std::string& t_value)
-        : start(t_start)
-        , end(t_end)
-        , value(t_value) {};
-};
-
+#include "token.hpp"
 class Lexer {
+
+    std::vector<Token> m_tokens {};
+    std::string m_lexeme {};
+    uint16_t m_cursor {};
+    uint16_t m_line {};
+
 public:
     Lexer() = default;
     ~Lexer() = default;
@@ -27,11 +21,12 @@ public:
     Lexer(const Lexer&) = delete;
     Lexer& operator=(const Lexer&) = delete;
 
-    std::vector<std::pair<TokenKind, TokenValue>> tokenize(const std::string& t_fileName);
+    std::vector<Token> tokenize(const std::string& t_fileName);
 
 private:
-    TokenKind isKeyword(const std::string& t_str);
-    TokenKind isSeparator(const char ch);
+    Token scanSymbol(const char& t_ch);
+    Token scanLexeme();
+    bool isNumber(const std::string& t_str);
 };
 
 #endif

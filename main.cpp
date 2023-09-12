@@ -6,8 +6,8 @@ int main(int argc, char* argv[])
 {
     QApplication app(argc, argv);
 
-    MainWindow widget;
-    widget.show();
+    MainWindow* widget = new MainWindow();
+    widget->show();
 
     return app.exec();
 }
