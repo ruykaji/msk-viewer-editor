@@ -13,7 +13,7 @@ set(HDR ./include/MainWindow.hpp ./include/CodeEditorWidget.hpp)
 
 add_executable(main ${SRC} ${HDR})
 
-target_link_libraries(main PRIVATE Qt6::Core Qt6::Gui Qt6::Widgets lexer)
+target_link_libraries(main PRIVATE Qt6::Core Qt6::Gui Qt6::Widgets lexer parser)
 target_include_directories(main PUBLIC include)
 
 find_package(Qt6 COMPONENTS Core Gui Widgets REQUIRED)

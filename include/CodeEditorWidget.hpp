@@ -3,12 +3,21 @@
 
 #include <QPlainTextEdit>
 
+#include "lexer.hpp"
+#include "parser.hpp"
+
 class CodeEditorWidget : public QPlainTextEdit {
 
     Q_OBJECT;
 
 public:
     CodeEditorWidget(QWidget* t_parent = nullptr);
+
+private:
+    void deepMakeText(QTextCursor& t_textCursor, QTextCharFormat& t_formater, uint16_t& t_line, std::shared_ptr<Node>& t_iterator);
+
+public slots:
+    void writeText();
 };
 
 #endif

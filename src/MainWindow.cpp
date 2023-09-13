@@ -1,3 +1,4 @@
+#include <QFileDialog>
 #include <QHBoxLayout>
 #include <QMenu>
 #include <QMenuBar>
@@ -21,7 +22,10 @@ MainWindow::MainWindow(QWidget* t_parent, Qt::WindowFlags t_flags)
 }
 
 void MainWindow::newFile() {};
-void MainWindow::open() {};
+void MainWindow::open()
+{
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open topology"), "/home", tr("Topology (*.msk *.MSK)"));
+};
 void MainWindow::save() {};
 
 void MainWindow::createActions()
