@@ -27,6 +27,7 @@ private:
     Token scanSymbol(const char& t_ch);
     Token scanLexeme();
     bool isNumber(const std::string& t_str);
+    void reset();
 };
 
 #endif

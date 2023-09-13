@@ -9,6 +9,8 @@ std::shared_ptr<Node> Parser::makeTree(const std::vector<Token>& t_tokens)
         makeStep(treeIterator, tokensIterator);
     }
 
+    treeIterator->child.emplace_back(std::make_shared<TerminalNode>(TerminalNode(*tokensIterator++)));
+
     return treeIterator;
 }
 
@@ -29,8 +31,6 @@ void Parser::makeStep(std::shared_ptr<Node>& t_treeIterator, std::vector<Token>:
         t_treeIterator = t_treeIterator->parent;
         break;
     }
-    case TokenKind::END_OF_FILE:
-        break;
     default: {
         t_treeIterator->child.emplace_back(std::make_shared<TerminalNode>(TerminalNode(*t_tokensIterator++)));
         break;
@@ -49,22 +49,22 @@ void Parser::makeREC(std::shared_ptr<Node>& t_treeIterator, std::vector<Token>::
         switch (t_tokensIterator->kind) {
         case TokenKind::NUMBER: {
             if (t_treeIterator->child.size() > 0 && t_treeIterator->child.back()->kind == NodeKind::TERMINAL) {
-                auto __node = std::static_pointer_cast<TerminalNode>(t_treeIterator->child.back());
+                auto node = std::static_pointer_cast<TerminalNode>(t_treeIterator->child.back());
 
-                if (__node->kind == TokenKind::NUMBER || __node->kind == TokenKind::STRING) {
-                    __node->isError = true;
-                    __node->message = "Separator is needed!";
+                if (node->kind == TokenKind::NUMBER || node->kind == TokenKind::STRING) {
+                    node->isError = true;
+                    node->message = "Separator is needed!";
                 }
             }
             break;
         }
         case TokenKind::STRING: {
             if (t_treeIterator->child.size() > 0 && t_treeIterator->child.back()->kind == NodeKind::TERMINAL) {
-                auto __node = std::static_pointer_cast<TerminalNode>(t_treeIterator->child.back());
+                auto node = std::static_pointer_cast<TerminalNode>(t_treeIterator->child.back());
 
-                if (__node->kind == TokenKind::NUMBER || __node->kind == TokenKind::STRING) {
-                    __node->isError = true;
-                    __node->message = "Separator is needed!";
+                if (node->kind == TokenKind::NUMBER || node->kind == TokenKind::STRING) {
+                    node->isError = true;
+                    node->message = "Separator is needed!";
                 }
             }
 

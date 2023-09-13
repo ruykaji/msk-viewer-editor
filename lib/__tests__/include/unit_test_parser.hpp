@@ -7,7 +7,7 @@
 
 TEST_CASE("Parser should produce correct parse tree.")
 {
-    std::string file { "REC ( -2, 120, 66, 30, NW )\nREC ( 49, 134, 1, 4, DP )" };
+    std::string file { "REC ( -2, 120, 66, 30, NW) \nREC ( 49, 134, 1, 4, DP )" };
 
     Lexer lexer;
     Parser parser;
@@ -16,7 +16,7 @@ TEST_CASE("Parser should produce correct parse tree.")
     auto tree = parser.makeTree(tokens);
 
     ASSERT(tree->kind == NodeKind::PROGRAM);
-    ASSERT(tree->child.size() == 2);
+    ASSERT(tree->child.size() == 3);
     ASSERT(tree->child.at(0)->kind == NodeKind::STATEMENT);
     ASSERT(tree->child.at(1)->kind == NodeKind::STATEMENT);
 
@@ -58,7 +58,7 @@ void deep(uint16_t& t_line, std::string& t_str, std::shared_ptr<Node>& t_iterato
 
 TEST_CASE("Parser tree should contain enough information to recreate original text.")
 {
-    std::string file { "SIMU #5.00\nREC ( -2, 120, 66, 30, NW )\nREC ( 49, 134, 1, 4, DP )" };
+    std::string file { "REC ( 49, 134, 1, 4, DP" };
     std::string newFile {};
 
     Lexer lexer;

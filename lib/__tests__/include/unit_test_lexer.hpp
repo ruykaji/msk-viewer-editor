@@ -7,7 +7,7 @@
 
 TEST_CASE("Lexer should produce right tokens.")
 {
-    std::string file { "SIMU #5.00\nREC ( -2, 120, 66, 30, NW )\nREC ( 49, 134, 1, 4, DP )" };
+    std::string file { "SIMU #5.00\nREC ( -2, 120, 66, 30, NW )\nREC ( 49, 134, 1, 4, DP " };
 
     static std::vector<TokenKind> tokensKind = {
         TokenKind::STRING,
@@ -37,7 +37,6 @@ TEST_CASE("Lexer should produce right tokens.")
         TokenKind::NUMBER,
         TokenKind::COMMA,
         TokenKind::STRING,
-        TokenKind::RIGHT_BRACE,
 
         TokenKind::END_OF_FILE
     };
@@ -54,7 +53,7 @@ TEST_CASE("Lexer should produce right tokens.")
 
 TEST_CASE("Lexer token's should contain enough information to recreate original text.")
 {
-    std::string file { "SIMU #5.00\nREC ( -2, 120, 66, 30, NW )\nREC ( 49, 134, 1, 4, DP )" };
+    std::string file { "SIMU #5.00\nREC ( -2, 120, 66, 30, NW )\nREC ( 49, 134, 1, 4, DP " };
     std::string newFile {};
 
     Lexer lexer;

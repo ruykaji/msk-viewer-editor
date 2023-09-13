@@ -4,6 +4,8 @@
 
 std::vector<Token> Lexer::tokenize(const std::string& t_file)
 {
+    reset();
+
     Token tokenFromSymbol {};
     Token tokenFromLexeme {};
 
@@ -28,6 +30,12 @@ std::vector<Token> Lexer::tokenize(const std::string& t_file)
         }
 
         ++m_cursor;
+    }
+
+    if (!m_lexeme.empty()) {
+        tokenFromLexeme = scanLexeme();
+        m_tokens.push_back(tokenFromLexeme);
+        m_lexeme.clear();
     }
 
     m_tokens.push_back(Token(TokenKind::END_OF_FILE, m_cursor, m_line, ""));
@@ -95,4 +103,12 @@ bool Lexer::isNumber(const std::string& t_str)
     }
 
     return true;
+}
+
+void Lexer::reset()
+{
+    m_tokens.clear();
+    m_lexeme.clear();
+    m_cursor = 0;
+    m_line = 0;
 }
