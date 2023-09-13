@@ -28,15 +28,11 @@ struct Node {
 
 struct TerminalNode : public Node {
     TokenKind kind {};
-    uint16_t start {};
-    uint16_t line {};
     std::string literal {};
 
     TerminalNode(const Token& t_token)
         : Node(NodeKind::TERMINAL)
         , kind(t_token.kind)
-        , start(t_token.start)
-        , line(t_token.line)
         , literal(t_token.literal) {};
 };
 

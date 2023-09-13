@@ -16,29 +16,27 @@ std::vector<Token> Lexer::tokenize(const std::string& t_file)
             tokenFromLexeme = scanLexeme();
 
             if (tokenFromLexeme.kind != TokenKind::NONE) {
-                m_tokens.push_back(tokenFromLexeme);
+                m_tokens.emplace_back(tokenFromLexeme);
                 m_lexeme.clear();
             }
 
             if (tokenFromSymbol.kind != TokenKind::UNDEFINED) {
-                m_tokens.push_back(tokenFromSymbol);
-            } else if (ch == '\t') {
-                m_cursor += 2;
-            } else if (ch == '\n') {
-                ++m_line;
+                m_tokens.emplace_back(tokenFromSymbol);
+            } else if (m_tokens.back().kind == TokenKind::UNDEFINED) {
+                m_tokens.rbegin()->literal += tokenFromSymbol.literal;
+            } else {
+                m_tokens.emplace_back(tokenFromSymbol);
             }
         }
-
-        ++m_cursor;
     }
 
     if (!m_lexeme.empty()) {
         tokenFromLexeme = scanLexeme();
-        m_tokens.push_back(tokenFromLexeme);
+        m_tokens.emplace_back(tokenFromLexeme);
         m_lexeme.clear();
     }
 
-    m_tokens.push_back(Token(TokenKind::END_OF_FILE, m_cursor, m_line, ""));
+    m_tokens.emplace_back(Token(TokenKind::END_OF_FILE, ""));
 
     return m_tokens;
 }
@@ -52,16 +50,16 @@ Token Lexer::scanSymbol(const char& t_ch)
     case '\r':
     case '\f':
     case '\v':
-        return Token(TokenKind::UNDEFINED, 0, 0, "");
+        return Token(TokenKind::UNDEFINED, std::string(1, t_ch));
     case '(':
-        return Token(TokenKind::LEFT_BRACE, m_cursor, m_line, "(");
+        return Token(TokenKind::LEFT_BRACE, "(");
     case ')':
-        return Token(TokenKind::RIGHT_BRACE, m_cursor, m_line, ")");
+        return Token(TokenKind::RIGHT_BRACE, ")");
     case ',':
-        return Token(TokenKind::COMMA, m_cursor, m_line, ",");
+        return Token(TokenKind::COMMA, ",");
     default:
         m_lexeme += t_ch;
-        return Token(TokenKind::NONE, 0, 0, "");
+        return Token(TokenKind::NONE, "");
     }
 }
 
@@ -69,17 +67,17 @@ Token Lexer::scanLexeme()
 {
     if (!m_lexeme.empty()) {
         if (m_lexeme == "REC") {
-            return Token(TokenKind::REC, m_cursor - m_lexeme.length(), m_line, m_lexeme);
+            return Token(TokenKind::REC, m_lexeme);
         }
 
         if (isNumber(m_lexeme)) {
-            return Token(TokenKind::NUMBER, m_cursor - m_lexeme.length(), m_line, m_lexeme);
+            return Token(TokenKind::NUMBER, m_lexeme);
         }
 
-        return Token(TokenKind::STRING, m_cursor - m_lexeme.length(), m_line, m_lexeme);
+        return Token(TokenKind::STRING, m_lexeme);
     }
 
-    return Token(TokenKind::NONE, 0, 0, "");
+    return Token(TokenKind::NONE, "");
 }
 
 bool Lexer::isNumber(const std::string& t_str)
@@ -109,6 +107,4 @@ void Lexer::reset()
 {
     m_tokens.clear();
     m_lexeme.clear();
-    m_cursor = 0;
-    m_line = 0;
 }

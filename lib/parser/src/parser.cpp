@@ -40,6 +40,10 @@ void Parser::makeStep(std::shared_ptr<Node>& t_treeIterator, std::vector<Token>:
 
 void Parser::makeREC(std::shared_ptr<Node>& t_treeIterator, std::vector<Token>::const_iterator& t_tokensIterator)
 {
+    while (t_tokensIterator->kind == TokenKind::UNDEFINED) {
+        makeStep(t_treeIterator, t_tokensIterator);
+    }
+
     if (!t_treeIterator->isError && t_tokensIterator->kind != TokenKind::LEFT_BRACE) {
         t_treeIterator->isError = true;
         t_treeIterator->message = "There is no declaration for REC statement!";

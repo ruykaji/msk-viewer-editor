@@ -11,8 +11,6 @@ class Lexer {
 
     std::vector<Token> m_tokens {};
     std::string m_lexeme {};
-    uint16_t m_cursor {};
-    uint16_t m_line {};
 
 public:
     Lexer() = default;

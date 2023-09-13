@@ -11,32 +11,49 @@ TEST_CASE("Lexer should produce right tokens.")
 
     static std::vector<TokenKind> tokensKind = {
         TokenKind::STRING,
+        TokenKind::UNDEFINED,
         TokenKind::STRING,
+        TokenKind::UNDEFINED,
 
         TokenKind::REC,
+        TokenKind::UNDEFINED,
         TokenKind::LEFT_BRACE,
+        TokenKind::UNDEFINED,
         TokenKind::NUMBER,
         TokenKind::COMMA,
+        TokenKind::UNDEFINED,
         TokenKind::NUMBER,
         TokenKind::COMMA,
+        TokenKind::UNDEFINED,
         TokenKind::NUMBER,
         TokenKind::COMMA,
+        TokenKind::UNDEFINED,
         TokenKind::NUMBER,
         TokenKind::COMMA,
+        TokenKind::UNDEFINED,
         TokenKind::STRING,
+        TokenKind::UNDEFINED,
         TokenKind::RIGHT_BRACE,
+        TokenKind::UNDEFINED,
 
         TokenKind::REC,
+        TokenKind::UNDEFINED,
         TokenKind::LEFT_BRACE,
+        TokenKind::UNDEFINED,
         TokenKind::NUMBER,
         TokenKind::COMMA,
+        TokenKind::UNDEFINED,
         TokenKind::NUMBER,
         TokenKind::COMMA,
+        TokenKind::UNDEFINED,
         TokenKind::NUMBER,
         TokenKind::COMMA,
+        TokenKind::UNDEFINED,
         TokenKind::NUMBER,
         TokenKind::COMMA,
+        TokenKind::UNDEFINED,
         TokenKind::STRING,
+        TokenKind::UNDEFINED,
 
         TokenKind::END_OF_FILE
     };
@@ -62,17 +79,6 @@ TEST_CASE("Lexer token's should contain enough information to recreate original 
     uint16_t line {};
 
     for (auto& token : tokens) {
-        if (line < token.line) {
-            ++line;
-            newFile += '\n';
-        }
-
-        if (newFile.length() < token.start) {
-            for (std::size_t i {}; i < token.start - newFile.length(); ++i) {
-                newFile += ' ';
-            }
-        }
-
         newFile += token.literal;
     }
 

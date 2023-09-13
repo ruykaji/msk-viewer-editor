@@ -7,7 +7,7 @@
 
 TEST_CASE("Parser should produce correct parse tree.")
 {
-    std::string file { "REC ( -2, 120, 66, 30, NW) \nREC ( 49, 134, 1, 4, DP )" };
+    std::string file { "REC(-2,120,66,30,NW)  \n\n\n  REC ( 49, 134, 1, 4, DP )\n" };
 
     Lexer lexer;
     Parser parser;
@@ -16,9 +16,9 @@ TEST_CASE("Parser should produce correct parse tree.")
     auto tree = parser.makeTree(tokens);
 
     ASSERT(tree->kind == NodeKind::PROGRAM);
-    ASSERT(tree->child.size() == 3);
+    ASSERT(tree->child.size() == 5);
     ASSERT(tree->child.at(0)->kind == NodeKind::STATEMENT);
-    ASSERT(tree->child.at(1)->kind == NodeKind::STATEMENT);
+    ASSERT(tree->child.at(1)->kind == NodeKind::TERMINAL);
 
     auto statementOne = std::static_pointer_cast<StatementNode>(tree->child.at(0));
 
@@ -27,7 +27,6 @@ TEST_CASE("Parser should produce correct parse tree.")
     for (auto& child : statementOne->child) {
         auto node = std::static_pointer_cast<TerminalNode>(child);
 
-        ASSERT(node->literal == file.substr(node->start, node->literal.length()));
         ASSERT(!node->isError);
     }
 }
@@ -38,17 +37,6 @@ void deep(uint16_t& t_line, std::string& t_str, std::shared_ptr<Node>& t_iterato
         if (child->kind == NodeKind::TERMINAL) {
             auto node = std::static_pointer_cast<TerminalNode>(child);
 
-            if (t_line < node->line) {
-                ++t_line;
-                t_str += '\n';
-            }
-
-            if (t_str.length() < node->start) {
-                for (std::size_t i {}; i < node->start - t_str.length(); ++i) {
-                    t_str += ' ';
-                }
-            }
-
             t_str += node->literal;
         } else if (child->kind == NodeKind::STATEMENT) {
             deep(t_line, t_str, child);
@@ -58,7 +46,7 @@ void deep(uint16_t& t_line, std::string& t_str, std::shared_ptr<Node>& t_iterato
 
 TEST_CASE("Parser tree should contain enough information to recreate original text.")
 {
-    std::string file { "REC ( 49, 134, 1, 4, DP" };
+    std::string file { "REC(-2,120,66,30,NW)  \n\n\n  REC ( 49, 134, 1, 4, DP " };
     std::string newFile {};
 
     Lexer lexer;
