@@ -31,15 +31,15 @@ void MainWindow::createActions()
     newAct->setStatusTip(tr("Create a new file"));
     connect(newAct, &QAction::triggered, this, &MainWindow::newFile);
 
-    newAct = new QAction(tr("&Open"), this);
-    newAct->setShortcuts(QKeySequence::Open);
-    newAct->setStatusTip(tr("Open a file"));
-    connect(newAct, &QAction::triggered, this, &MainWindow::open);
+    openAct = new QAction(tr("&Open"), this);
+    openAct->setShortcuts(QKeySequence::Open);
+    openAct->setStatusTip(tr("Open a file"));
+    connect(openAct, &QAction::triggered, this, &MainWindow::open);
 
-    newAct = new QAction(tr("&Save"), this);
-    newAct->setShortcuts(QKeySequence::Save);
-    newAct->setStatusTip(tr("Save a file"));
-    connect(newAct, &QAction::triggered, this, &MainWindow::save);
+    saveAct = new QAction(tr("&Save"), this);
+    saveAct->setShortcuts(QKeySequence::Save);
+    saveAct->setStatusTip(tr("Save a file"));
+    connect(saveAct, &QAction::triggered, this, &MainWindow::save);
 }
 
 void MainWindow::createMenus()
@@ -49,5 +49,5 @@ void MainWindow::createMenus()
     fileMenu->addAction(openAct);
     fileMenu->addAction(saveAct);
     fileMenu->addSeparator();
-    fileMenu->addAction(exitAct);
+    // fileMenu->addAction(exitAct);
 }

@@ -60,7 +60,6 @@ TEST_CASE("Lexer token's should contain enough information to recreate original 
     Lexer lexer;
     std::vector<Token> tokens = lexer.tokenize(file);
 
-    uint16_t cursor {};
     uint16_t line {};
 
     for (auto& token : tokens) {

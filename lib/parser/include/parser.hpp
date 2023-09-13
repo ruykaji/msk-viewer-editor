@@ -14,7 +14,7 @@ public:
     Parser(const Parser&) = delete;
     Parser& operator=(const Parser&) = delete;
 
-    std::shared_ptr<StatementNode> makeTree(const std::vector<Token>& t_tokens);
+    std::shared_ptr<Node> makeTree(const std::vector<Token>& t_tokens);
 
 private:
     void makeStep(std::shared_ptr<Node>& t_treeIterator, std::vector<Token>::const_iterator& t_tokensIterator);

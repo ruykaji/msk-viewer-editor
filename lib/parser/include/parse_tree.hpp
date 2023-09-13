@@ -8,6 +8,7 @@
 #include <vector>
 
 enum class NodeKind {
+    PROGRAM,
     TERMINAL,
     STATEMENT
 };
@@ -40,7 +41,6 @@ struct TerminalNode : public Node {
 };
 
 enum class StatementKind {
-    PROGRAM,
     REC_CALL,
 };
 

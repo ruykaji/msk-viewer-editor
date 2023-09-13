@@ -1,38 +1,40 @@
 #include "parser.hpp"
 
-std::shared_ptr<StatementNode> Parser::makeTree(const std::vector<Token>& t_tokens)
+std::shared_ptr<Node> Parser::makeTree(const std::vector<Token>& t_tokens)
 {
-    auto tree = std::make_shared<StatementNode>(StatementNode(StatementKind::PROGRAM));
-    auto treeIterator = std::static_pointer_cast<Node>(tree);
+    auto treeIterator = std::make_shared<Node>(Node(NodeKind::PROGRAM));
     auto tokensIterator = t_tokens.begin();
 
     while (tokensIterator->kind != TokenKind::END_OF_FILE) {
         makeStep(treeIterator, tokensIterator);
     }
 
-    return tree;
+    return treeIterator;
 }
 
 void Parser::makeStep(std::shared_ptr<Node>& t_treeIterator, std::vector<Token>::const_iterator& t_tokensIterator)
 {
     switch (t_tokensIterator->kind) {
     case TokenKind::REC: {
-        auto node = std::make_shared<Node>(StatementNode(StatementKind::REC_CALL));
+        auto node = std::make_shared<StatementNode>(StatementNode(StatementKind::REC_CALL));
         node->parent = t_treeIterator;
 
-        t_treeIterator->child.push_back(node);
+        t_treeIterator->child.emplace_back(node);
         t_treeIterator = node;
 
-        t_treeIterator->child.push_back(std::make_shared<Node>(TerminalNode(*t_tokensIterator++)));
+        t_treeIterator->child.emplace_back(std::make_shared<TerminalNode>(TerminalNode(*t_tokensIterator++)));
 
         makeREC(t_treeIterator, t_tokensIterator);
 
         t_treeIterator = t_treeIterator->parent;
         break;
     }
-    default:
-        t_treeIterator->child.push_back(std::make_shared<Node>(TerminalNode(*t_tokensIterator++)));
+    case TokenKind::END_OF_FILE:
         break;
+    default: {
+        t_treeIterator->child.emplace_back(std::make_shared<TerminalNode>(TerminalNode(*t_tokensIterator++)));
+        break;
+    }
     }
 }
 
