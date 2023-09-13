@@ -4,8 +4,7 @@
 #include <memory>
 #include <string>
 
-#include "ast.hpp"
-#include "token_kind.hpp"
+#include "parse_tree.hpp"
 
 class Parser {
 public:
@@ -15,10 +14,11 @@ public:
     Parser(const Parser&) = delete;
     Parser& operator=(const Parser&) = delete;
 
-    std::vector<std::unique_ptr<Node>> parse(const std::vector<std::pair<TokenKind, std::string>>& t_tokens);
+    std::shared_ptr<StatementNode> makeTree(const std::vector<Token>& t_tokens);
 
 private:
-    TokenKind isCorrectSyntaxPattern(std::vector<TokenKind> t_tokenOrder);
+    void makeStep(std::shared_ptr<Node>& t_treeIterator, std::vector<Token>::const_iterator& t_tokensIterator);
+    void makeREC(std::shared_ptr<Node>& t_treeIterator, std::vector<Token>::const_iterator& t_tokensIterator);
 };
 
 #endif

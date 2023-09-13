@@ -11,13 +11,11 @@ set(CMAKE_AUTORCC ON)
 set(SRC main.cpp ./src/MainWindow.cpp ./src/CodeEditorWidget.cpp)
 set(HDR ./include/MainWindow.hpp ./include/CodeEditorWidget.hpp)
 
-add_executable(main WIN32 ${SRC} ${HDR})
+add_executable(main ${SRC} ${HDR})
 
-target_link_libraries(main PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets lexer)
+target_link_libraries(main PRIVATE Qt6::Core Qt6::Gui Qt6::Widgets lexer)
 target_include_directories(main PUBLIC include)
 
-set (CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "D:\\qt\\5.12.12\\mingw73_64\\")
-
-find_package(Qt5 COMPONENTS Core Gui Widgets REQUIRED)
+find_package(Qt6 COMPONENTS Core Gui Widgets REQUIRED)
 
 add_subdirectory(lib)

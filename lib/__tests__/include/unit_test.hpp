@@ -3,7 +3,6 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <windows.h>
 
 #ifndef SIMPLE_UNIT_TEST_HPP
 #define SIMPLE_UNIT_TEST_HPP
@@ -50,7 +49,6 @@ class TestFramework
         uint64_t totalPassedAssertions{};
         uint64_t totalFailedAssertions{};
 
-        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 10);
         std::cout << "\nSimple Unit Testing\n\n";
         std::cout << "====================================================================\n\n";
 
@@ -83,7 +81,6 @@ class TestFramework
                 ++failedCases;
                 ++totalFailedAssertions;
 
-                SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 12);
                 std::cout << "Unhandled exception: " << e.what() << "\n" << std::flush;
             }
         }
@@ -92,25 +89,20 @@ class TestFramework
         {
             if (testResult.second)
             {
-                SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 10);
                 std::cout << "-- [  PASSED  ] -- " << testResult.first << "\n";
             }
             else
             {
-                SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 12);
                 std::cout << "-- [  FAILED  ] -- " << testResult.first << "\n";
             }
         }
 
-        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 10);
         std::cout << "\n====================================================================\n";
         std::cout << "Total tests " << totalCases << " : " << totalCases - failedCases << " passed | " << failedCases
                   << " failed\n";
         std::cout << "Total assertions " << totalFailedAssertions + totalPassedAssertions << " : "
                   << totalPassedAssertions << " : passed | " << totalFailedAssertions << " failed\n\n"
                   << std::flush;
-
-        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15);
     }
 };
 
