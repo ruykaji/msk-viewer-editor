@@ -7,11 +7,16 @@
 
 class ViewerWidget : public QWidget {
 
+Parser* m_parser;
+
 public:
-    ViewerWidget(QWidget* t_parent);
+    ViewerWidget(Parser* t_parser, QWidget* t_parent);
+
+protected:
+    void paintEvent(QPaintEvent* t_event);
 
 public slots:
-    void paintAST();
+    void redraw();
 };
 
 #endif

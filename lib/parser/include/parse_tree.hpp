@@ -1,11 +1,12 @@
 #ifndef __PARSE_TREE_H__
 #define __PARSE_TREE_H__
 
-#include "token.hpp"
 #include <cstdint>
 #include <memory>
 #include <string>
 #include <vector>
+
+#include "token.hpp"
 
 namespace pt {
 enum class NodeKind {

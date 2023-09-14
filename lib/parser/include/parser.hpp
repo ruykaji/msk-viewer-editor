@@ -8,11 +8,11 @@
 #include "parse_tree.hpp"
 
 class Parser {
-    std::shared_ptr<pt::Node> m_pt {};
-    std::shared_ptr<ast::Node> m_ast {};
-
 public:
-    Parser();
+    std::shared_ptr<pt::Node> pt {};
+    std::shared_ptr<ast::Node> ast {};
+
+    Parser() = default;
     ~Parser() = default;
 
     Parser(const Parser&) = delete;

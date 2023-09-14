@@ -2,8 +2,8 @@
 
 #include "CodeEditorWidget.hpp"
 
-CodeEditorWidget::CodeEditorWidget(QWidget* t_parent)
-    : QPlainTextEdit(t_parent)
+CodeEditorWidget::CodeEditorWidget(Lexer* t_lexer, Parser* t_parser, QWidget* t_parent)
+    : m_lexer(t_lexer), m_parser(t_parser), QPlainTextEdit(t_parent)
 {
     auto palette = QPalette();
 
@@ -20,11 +20,10 @@ CodeEditorWidget::CodeEditorWidget(QWidget* t_parent)
         file += ch;
     }
 
-    Lexer lexer {};
-    Parser parser {};
+    auto tokens = m_lexer->tokenize(file);
+    auto tree = m_parser->makePT(tokens);
 
-    auto tokens = lexer.tokenize(file);
-    auto tree = parser.makePT(tokens);
+    m_parser->makeAST();
 
     auto formater = QTextCharFormat();
     auto __textCursor = textCursor();
@@ -88,11 +87,11 @@ void CodeEditorWidget::writeText()
     __document->clear();
     __textCursor.setPosition(0);
 
-    Lexer lexer {};
-    Parser parser {};
+    auto tokens = m_lexer->tokenize(file);
+    auto tree = m_parser->makePT(tokens);
 
-    auto tokens = lexer.tokenize(file);
-    auto tree = parser.makePT(tokens);
+    m_parser->makeAST();
+
     auto formater = QTextCharFormat();
 
     formater.setFontPointSize(12);

@@ -11,10 +11,13 @@
 MainWindow::MainWindow(QWidget* t_parent, Qt::WindowFlags t_flags)
     : QMainWindow(t_parent, t_flags)
 {
-    auto viewerWidget = new ViewerWidget(this);
-    auto codeEditor = new CodeEditorWidget(this);
+    m_lexer = new Lexer();
+    m_parser = new Parser();
 
-    connect(codeEditor, &CodeEditorWidget::textChanged, viewerWidget, &ViewerWidget::paintAST);
+    auto codeEditor = new CodeEditorWidget(m_lexer, m_parser, this);
+    auto viewerWidget = new ViewerWidget(m_parser, this);
+
+    connect(codeEditor, &CodeEditorWidget::textChanged, viewerWidget, &ViewerWidget::redraw);
 
     codeEditor->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
     codeEditor->setMaximumWidth(300);

@@ -10,8 +10,8 @@
 class MainWindow : public QMainWindow {
     Q_OBJECT;
 
-    Lexer lexer {};
-    Parser parser {};
+    Lexer* m_lexer {};
+    Parser* m_parser {};
 
     QMenu* fileMenu;
     QAction* newAct;
