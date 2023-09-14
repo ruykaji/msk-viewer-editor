@@ -8,28 +8,31 @@
 #include "parse_tree.hpp"
 
 class Parser {
+    std::shared_ptr<pt::Node> m_pt {};
+    std::shared_ptr<ast::Node> m_ast {};
+
 public:
-    Parser() = default;
+    Parser();
     ~Parser() = default;
 
     Parser(const Parser&) = delete;
     Parser& operator=(const Parser&) = delete;
 
     std::shared_ptr<pt::Node> makePT(const std::vector<Token>& t_tokens);
-    std::shared_ptr<ast::Node> makeAST(const std::shared_ptr<pt::Node>& t_parseTree);
+    std::shared_ptr<ast::Node> makeAST();
 
 private:
     /*Parse tree methods*/
     /*==========================================================================*/
 
-    void makePTStep(std::shared_ptr<pt::Node>& t_treeIterator, std::vector<Token>::const_iterator& t_tokensIterator);
-    void makePTREC(std::shared_ptr<pt::Node>& t_treeIterator, std::vector<Token>::const_iterator& t_tokensIterator);
+    void makePTStep(std::vector<Token>::const_iterator& t_tokensIterator);
+    void makePTREC(std::vector<Token>::const_iterator& t_tokensIterator);
 
     /*Abstract syntax tree methods*/
     /*==========================================================================*/
-    
-    void makeASTStep(std::shared_ptr<pt::Node>& t_treeIterator);
-    void makeASTREC(std::shared_ptr<pt::Node>& t_treeIterator);
+
+    void makeASTStep();
+    void makeASTREC();
 };
 
 #endif

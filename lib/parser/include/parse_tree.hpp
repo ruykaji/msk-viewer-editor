@@ -11,7 +11,8 @@ namespace pt {
 enum class NodeKind {
     PROGRAM,
     TERMINAL,
-    STATEMENT
+    STATEMENT,
+    END_OF_PROGRAM
 };
 
 struct Node {
@@ -23,16 +24,17 @@ struct Node {
     std::shared_ptr<Node> parent {};
     std::vector<std::shared_ptr<Node>> child {};
 
-    Node(const NodeKind t_kind)
-        : kind(t_kind) {};
+    Node(const NodeKind& t_kind, const std::shared_ptr<Node>& t_parent)
+        : kind(t_kind)
+        , parent(t_parent) {};
 };
 
 struct TerminalNode : public Node {
     TokenKind kind {};
     std::string literal {};
 
-    TerminalNode(const Token& t_token)
-        : Node(NodeKind::TERMINAL)
+    TerminalNode(const Token& t_token, const std::shared_ptr<Node>& t_parent)
+        : Node(NodeKind::TERMINAL, t_parent)
         , kind(t_token.kind)
         , literal(t_token.literal) {};
 };
@@ -44,8 +46,8 @@ enum class StatementKind {
 struct StatementNode : public Node {
     StatementKind kind {};
 
-    StatementNode(const StatementKind& t_kind)
-        : Node(NodeKind::STATEMENT)
+    StatementNode(const StatementKind& t_kind, const std::shared_ptr<Node>& t_parent)
+        : Node(NodeKind::STATEMENT, t_parent)
         , kind(t_kind) {};
 };
 };

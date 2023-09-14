@@ -4,8 +4,14 @@
 #include <QMainWindow>
 #include <QMenu>
 
+#include "lexer.hpp"
+#include "parser.hpp"
+
 class MainWindow : public QMainWindow {
     Q_OBJECT;
+
+    Lexer lexer {};
+    Parser parser {};
 
     QMenu* fileMenu;
     QAction* newAct;

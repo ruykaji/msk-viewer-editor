@@ -6,15 +6,31 @@
 
 #include "CodeEditorWidget.hpp"
 #include "MainWindow.hpp"
+#include "ViewerWidget.hpp"
 
 MainWindow::MainWindow(QWidget* t_parent, Qt::WindowFlags t_flags)
     : QMainWindow(t_parent, t_flags)
 {
-    // setWindowFlags(Qt::FramelessWindowHint);
+    auto viewerWidget = new ViewerWidget(this);
+    auto codeEditor = new CodeEditorWidget(this);
 
-    CodeEditorWidget* codeEditor = new CodeEditorWidget(this);
+    connect(codeEditor, &CodeEditorWidget::textChanged, viewerWidget, &ViewerWidget::paintAST);
 
-    setCentralWidget(codeEditor);
+    codeEditor->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+    codeEditor->setMaximumWidth(300);
+
+    viewerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+    auto __centralWidget = new QWidget(this);
+    auto hbox = new QHBoxLayout(__centralWidget);
+
+    hbox->addWidget(codeEditor);
+    hbox->addWidget(viewerWidget);
+    hbox->setContentsMargins(0, 0, 0, 0);
+
+    __centralWidget->setLayout(hbox);
+
+    setCentralWidget(__centralWidget);
     createActions();
     createMenus();
 

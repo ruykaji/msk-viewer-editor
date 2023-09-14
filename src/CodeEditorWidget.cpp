@@ -40,37 +40,39 @@ CodeEditorWidget::CodeEditorWidget(QWidget* t_parent)
 
 void CodeEditorWidget::deepMakeText(QTextCursor& t_textCursor, QTextCharFormat& t_formater, uint16_t& t_line, std::shared_ptr<pt::Node>& t_iterator)
 {
-    if (t_iterator->isError) {
-        t_formater.setUnderlineStyle(QTextCharFormat::WaveUnderline);
-        t_formater.setUnderlineColor(Qt::red);
-        t_formater.setToolTip(QString::fromStdString(t_iterator->message));
-    } else {
-        t_formater.setUnderlineStyle(QTextCharFormat::NoUnderline);
-        t_formater.setUnderlineColor(Qt::transparent);
-        t_formater.setToolTip(QString(""));
-    }
+    if (t_iterator->kind != pt::NodeKind::END_OF_PROGRAM) {
+        if (t_iterator->isError) {
+            t_formater.setUnderlineStyle(QTextCharFormat::WaveUnderline);
+            t_formater.setUnderlineColor(Qt::red);
+            t_formater.setToolTip(QString::fromStdString(t_iterator->message));
+        } else {
+            t_formater.setUnderlineStyle(QTextCharFormat::NoUnderline);
+            t_formater.setUnderlineColor(Qt::transparent);
+            t_formater.setToolTip(QString(""));
+        }
 
-    for (auto& child : t_iterator->child) {
-        if (child->kind == pt::NodeKind::TERMINAL) {
-            auto node = std::static_pointer_cast<pt::TerminalNode>(child);
+        for (auto& child : t_iterator->child) {
+            if (child->kind == pt::NodeKind::TERMINAL) {
+                auto node = std::static_pointer_cast<pt::TerminalNode>(child);
 
-            switch (node->kind) {
-            case TokenKind::REC:
-                t_formater.setForeground(QBrush(QColor(237, 172, 50)));
-                break;
-            case TokenKind::LEFT_BRACE:
-            case TokenKind::RIGHT_BRACE:
-                t_formater.setForeground(QBrush(QColor(50, 144, 237)));
-                break;
-            default:
-                t_formater.setForeground(QBrush(Qt::white));
-                break;
+                switch (node->kind) {
+                case TokenKind::REC:
+                    t_formater.setForeground(QBrush(QColor(237, 172, 50)));
+                    break;
+                case TokenKind::LEFT_BRACE:
+                case TokenKind::RIGHT_BRACE:
+                    t_formater.setForeground(QBrush(QColor(50, 144, 237)));
+                    break;
+                default:
+                    t_formater.setForeground(QBrush(Qt::white));
+                    break;
+                }
+
+                t_textCursor.insertText(QString::fromStdString(node->literal), t_formater);
+
+            } else if (child->kind == pt::NodeKind::STATEMENT) {
+                deepMakeText(t_textCursor, t_formater, t_line, child);
             }
-
-            t_textCursor.insertText(QString::fromStdString(node->literal), t_formater);
-
-        } else if (child->kind == pt::NodeKind::STATEMENT) {
-            deepMakeText(t_textCursor, t_formater, t_line, child);
         }
     }
 }
