@@ -13,32 +13,32 @@ TEST_CASE("Parser should produce correct parse tree.")
     Parser parser;
 
     auto tokens = lexer.tokenize(file);
-    auto tree = parser.makeTree(tokens);
+    auto tree = parser.makePT(tokens);
 
-    ASSERT(tree->kind == NodeKind::PROGRAM);
+    ASSERT(tree->kind == pt::NodeKind::PROGRAM);
     ASSERT(tree->child.size() == 5);
-    ASSERT(tree->child.at(0)->kind == NodeKind::STATEMENT);
-    ASSERT(tree->child.at(1)->kind == NodeKind::TERMINAL);
+    ASSERT(tree->child.at(0)->kind == pt::NodeKind::STATEMENT);
+    ASSERT(tree->child.at(1)->kind == pt::NodeKind::TERMINAL);
 
-    auto statementOne = std::static_pointer_cast<StatementNode>(tree->child.at(0));
+    auto statementOne = std::static_pointer_cast<pt::StatementNode>(tree->child.at(0));
 
     ASSERT(statementOne->child.size() == 12);
 
     for (auto& child : statementOne->child) {
-        auto node = std::static_pointer_cast<TerminalNode>(child);
+        auto node = std::static_pointer_cast<pt::TerminalNode>(child);
 
         ASSERT(!node->isError);
     }
 }
 
-void deep(uint16_t& t_line, std::string& t_str, std::shared_ptr<Node>& t_iterator)
+void deep(uint16_t& t_line, std::string& t_str, std::shared_ptr<pt::Node>& t_iterator)
 {
     for (auto& child : t_iterator->child) {
-        if (child->kind == NodeKind::TERMINAL) {
-            auto node = std::static_pointer_cast<TerminalNode>(child);
+        if (child->kind == pt::NodeKind::TERMINAL) {
+            auto node = std::static_pointer_cast<pt::TerminalNode>(child);
 
             t_str += node->literal;
-        } else if (child->kind == NodeKind::STATEMENT) {
+        } else if (child->kind == pt::NodeKind::STATEMENT) {
             deep(t_line, t_str, child);
         }
     }
@@ -53,7 +53,7 @@ TEST_CASE("Parser tree should contain enough information to recreate original te
     Parser parser;
 
     auto tokens = lexer.tokenize(file);
-    auto tree = parser.makeTree(tokens);
+    auto tree = parser.makePT(tokens);
 
     uint16_t line {};
 

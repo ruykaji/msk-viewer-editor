@@ -14,7 +14,7 @@ public:
     CodeEditorWidget(QWidget* t_parent = nullptr);
 
 private:
-    void deepMakeText(QTextCursor& t_textCursor, QTextCharFormat& t_formater, uint16_t& t_line, std::shared_ptr<Node>& t_iterator);
+    void deepMakeText(QTextCursor& t_textCursor, QTextCharFormat& t_formater, uint16_t& t_line, std::shared_ptr<pt::Node>& t_iterator);
 
 public slots:
     void writeText();

@@ -10,6 +10,8 @@
 MainWindow::MainWindow(QWidget* t_parent, Qt::WindowFlags t_flags)
     : QMainWindow(t_parent, t_flags)
 {
+    // setWindowFlags(Qt::FramelessWindowHint);
+
     CodeEditorWidget* codeEditor = new CodeEditorWidget(this);
 
     setCentralWidget(codeEditor);

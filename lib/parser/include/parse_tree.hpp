@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 
+namespace pt {
 enum class NodeKind {
     PROGRAM,
     TERMINAL,
@@ -46,6 +47,7 @@ struct StatementNode : public Node {
     StatementNode(const StatementKind& t_kind)
         : Node(NodeKind::STATEMENT)
         , kind(t_kind) {};
+};
 };
 
 #endif

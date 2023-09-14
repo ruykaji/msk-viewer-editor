@@ -24,7 +24,7 @@ CodeEditorWidget::CodeEditorWidget(QWidget* t_parent)
     Parser parser {};
 
     auto tokens = lexer.tokenize(file);
-    auto tree = parser.makeTree(tokens);
+    auto tree = parser.makePT(tokens);
 
     auto formater = QTextCharFormat();
     auto __textCursor = textCursor();
@@ -38,11 +38,21 @@ CodeEditorWidget::CodeEditorWidget(QWidget* t_parent)
     connect(this, &QPlainTextEdit::textChanged, this, &CodeEditorWidget::writeText);
 };
 
-void CodeEditorWidget::deepMakeText(QTextCursor& t_textCursor, QTextCharFormat& t_formater, uint16_t& t_line, std::shared_ptr<Node>& t_iterator)
+void CodeEditorWidget::deepMakeText(QTextCursor& t_textCursor, QTextCharFormat& t_formater, uint16_t& t_line, std::shared_ptr<pt::Node>& t_iterator)
 {
+    if (t_iterator->isError) {
+        t_formater.setUnderlineStyle(QTextCharFormat::WaveUnderline);
+        t_formater.setUnderlineColor(Qt::red);
+        t_formater.setToolTip(QString::fromStdString(t_iterator->message));
+    } else {
+        t_formater.setUnderlineStyle(QTextCharFormat::NoUnderline);
+        t_formater.setUnderlineColor(Qt::transparent);
+        t_formater.setToolTip(QString(""));
+    }
+
     for (auto& child : t_iterator->child) {
-        if (child->kind == NodeKind::TERMINAL) {
-            auto node = std::static_pointer_cast<TerminalNode>(child);
+        if (child->kind == pt::NodeKind::TERMINAL) {
+            auto node = std::static_pointer_cast<pt::TerminalNode>(child);
 
             switch (node->kind) {
             case TokenKind::REC:
@@ -59,7 +69,7 @@ void CodeEditorWidget::deepMakeText(QTextCursor& t_textCursor, QTextCharFormat& 
 
             t_textCursor.insertText(QString::fromStdString(node->literal), t_formater);
 
-        } else if (child->kind == NodeKind::STATEMENT) {
+        } else if (child->kind == pt::NodeKind::STATEMENT) {
             deepMakeText(t_textCursor, t_formater, t_line, child);
         }
     }
@@ -80,7 +90,7 @@ void CodeEditorWidget::writeText()
     Parser parser {};
 
     auto tokens = lexer.tokenize(file);
-    auto tree = parser.makeTree(tokens);
+    auto tree = parser.makePT(tokens);
     auto formater = QTextCharFormat();
 
     formater.setFontPointSize(12);

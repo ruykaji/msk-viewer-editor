@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 
+#include "abstract_syntax_tree.hpp"
 #include "parse_tree.hpp"
 
 class Parser {
@@ -14,11 +15,21 @@ public:
     Parser(const Parser&) = delete;
     Parser& operator=(const Parser&) = delete;
 
-    std::shared_ptr<Node> makeTree(const std::vector<Token>& t_tokens);
+    std::shared_ptr<pt::Node> makePT(const std::vector<Token>& t_tokens);
+    std::shared_ptr<ast::Node> makeAST(const std::shared_ptr<pt::Node>& t_parseTree);
 
 private:
-    void makeStep(std::shared_ptr<Node>& t_treeIterator, std::vector<Token>::const_iterator& t_tokensIterator);
-    void makeREC(std::shared_ptr<Node>& t_treeIterator, std::vector<Token>::const_iterator& t_tokensIterator);
+    /*Parse tree methods*/
+    /*==========================================================================*/
+
+    void makePTStep(std::shared_ptr<pt::Node>& t_treeIterator, std::vector<Token>::const_iterator& t_tokensIterator);
+    void makePTREC(std::shared_ptr<pt::Node>& t_treeIterator, std::vector<Token>::const_iterator& t_tokensIterator);
+
+    /*Abstract syntax tree methods*/
+    /*==========================================================================*/
+    
+    void makeASTStep(std::shared_ptr<pt::Node>& t_treeIterator);
+    void makeASTREC(std::shared_ptr<pt::Node>& t_treeIterator);
 };
 
 #endif
