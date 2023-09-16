@@ -9,8 +9,8 @@
 
 class Parser {
 public:
-    std::shared_ptr<pt::Node> pt {};
-    std::shared_ptr<ast::Node> ast {};
+    std::shared_ptr<Node> pt {};
+    std::vector<std::shared_ptr<Rect>> ast {};
 
     Parser() = default;
     ~Parser() = default;
@@ -18,8 +18,8 @@ public:
     Parser(const Parser&) = delete;
     Parser& operator=(const Parser&) = delete;
 
-    std::shared_ptr<pt::Node> makePT(const std::vector<Token>& t_tokens);
-    std::shared_ptr<ast::Node> makeAST();
+    void makePT(const std::vector<Token>& t_tokens);
+    void makeAST();
 
 private:
     /*Parse tree methods*/

@@ -6,50 +6,42 @@
 #include <string>
 #include <vector>
 
-namespace ast {
-enum class NodeKind {
-    PROGRAM,
-    NUMBER_NODE,
-    STRING_NODE,
-    REC_NODE
-};
+#include "parse_tree.hpp"
 
-struct Node {
-    NodeKind kind {};
+struct Rect {
+    enum class Material {
+        None,
+        NW,
+        ND,
+        PD,
+        PO,
+        CO,
+        PO2,
+        M1,
+        M2,
+        M3,
+        M4,
+        M5,
+        M6
+    };
 
-    bool isError { false };
-    std::string message {};
+    std::shared_ptr<Node> source {};
 
-    std::shared_ptr<Node> parent {};
-    std::vector<std::shared_ptr<Node>> child {};
+    int16_t left {};
+    int16_t top {};
+    int16_t width {};
+    int16_t height {};
+    Material material {};
 
-    Node(const NodeKind& t_kind, const std::shared_ptr<Node>& t_parent)
-        : kind(t_kind)
-        , parent(t_parent) {};
-};
+    Rect() = default;
+    ~Rect() = default;
 
-struct NumberNode : public Node {
-    uint16_t value;
-    
-    NumberNode(const uint16_t& t_value, const std::shared_ptr<Node>& t_parent)
-        : Node(NodeKind::NUMBER_NODE, t_parent)
-        , value(t_value) {};
-};
-
-struct StringNode : public Node {
-    std::string value;
-
-    StringNode(const std::string& t_value, const std::shared_ptr<Node>& t_parent)
-        : Node(NodeKind::STRING_NODE, t_parent)
-        , value(t_value) {};
-};
-
-struct RECNode : public Node {
-
-    RECNode(const std::shared_ptr<Node>& t_parent)
-        : Node(NodeKind::REC_NODE, t_parent) {};
-};
-
+    Rect(int16_t& t_left, int16_t& t_top, int16_t& width, int16_t& t_height, Material& t_material)
+        : left(t_left)
+        , top(t_top)
+        , width(width)
+        , height(t_height)
+        , material(t_material) {};
 };
 
 #endif

@@ -8,7 +8,6 @@
 
 #include "token.hpp"
 
-namespace pt {
 enum class NodeKind {
     PROGRAM,
     TERMINAL,
@@ -50,7 +49,6 @@ struct StatementNode : public Node {
     StatementNode(const StatementKind& t_kind, const std::shared_ptr<Node>& t_parent)
         : Node(NodeKind::STATEMENT, t_parent)
         , kind(t_kind) {};
-};
 };
 
 #endif

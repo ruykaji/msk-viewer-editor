@@ -1,11 +1,24 @@
+#include <algorithm>
+
 #include "parser.hpp"
+
+inline bool isNumber(const std::string& t_str)
+{
+    for (std::size_t i {}; i < t_str.length(); ++i) {
+        if (!std::isdigit(t_str[0])) {
+            return false;
+        }
+    }
+
+    return true;
+}
 
 /*Parse tree methods*/
 /*==========================================================================*/
 
-std::shared_ptr<pt::Node> Parser::makePT(const std::vector<Token>& t_tokens)
+void Parser::makePT(const std::vector<Token>& t_tokens)
 {
-    pt = std::make_shared<pt::Node>(pt::NodeKind::PROGRAM, nullptr);
+    pt = std::make_shared<Node>(NodeKind::PROGRAM, nullptr);
 
     auto tokensIterator = t_tokens.begin();
 
@@ -13,22 +26,20 @@ std::shared_ptr<pt::Node> Parser::makePT(const std::vector<Token>& t_tokens)
         makePTStep(tokensIterator);
     }
 
-    pt->child.emplace_back(std::make_shared<pt::Node>(pt::Node(pt::NodeKind::END_OF_PROGRAM, pt)));
-
-    return pt;
+    pt->child.emplace_back(std::make_shared<Node>(Node(NodeKind::END_OF_PROGRAM, pt)));
 }
 
 void Parser::makePTStep(std::vector<Token>::const_iterator& t_tokensIterator)
 {
     switch (t_tokensIterator->kind) {
     case TokenKind::REC: {
-        auto node = std::make_shared<pt::StatementNode>(pt::StatementNode(pt::StatementKind::REC_CALL, pt));
+        auto node = std::make_shared<StatementNode>(StatementNode(StatementKind::REC_CALL, pt));
         node->parent = pt;
 
         pt->child.emplace_back(node);
         pt = node;
 
-        pt->child.emplace_back(std::make_shared<pt::TerminalNode>(pt::TerminalNode(*t_tokensIterator++, pt)));
+        pt->child.emplace_back(std::make_shared<TerminalNode>(TerminalNode(*t_tokensIterator++, pt)));
 
         makePTREC(t_tokensIterator);
 
@@ -36,7 +47,7 @@ void Parser::makePTStep(std::vector<Token>::const_iterator& t_tokensIterator)
         break;
     }
     default: {
-        pt->child.emplace_back(std::make_shared<pt::TerminalNode>(pt::TerminalNode(*t_tokensIterator++, pt)));
+        pt->child.emplace_back(std::make_shared<TerminalNode>(TerminalNode(*t_tokensIterator++, pt)));
         break;
     }
     }
@@ -48,31 +59,56 @@ void Parser::makePTREC(std::vector<Token>::const_iterator& t_tokensIterator)
         makePTStep(t_tokensIterator);
     }
 
-    if (!pt->isError && t_tokensIterator->kind != TokenKind::LEFT_BRACE) {
+    if (t_tokensIterator->kind != TokenKind::LEFT_BRACE) {
         pt->isError = true;
-        pt->message = "There is no declaration for REC statement!";
+        pt->child.at(0)->isError = true;
+        pt->child.at(0)->message = "There is no declaration for REC statement!";
+
+        return;
     }
 
     while (t_tokensIterator->kind != TokenKind::END_OF_FILE) {
         switch (t_tokensIterator->kind) {
+        case TokenKind::LEFT_BRACE: {
+            break;
+        }
+        case TokenKind::COMMA: {
+            break;
+        }
         case TokenKind::NUMBER: {
-            if (pt->child.size() > 0 && pt->child.back()->kind == pt::NodeKind::TERMINAL) {
-                auto node = std::static_pointer_cast<pt::TerminalNode>(pt->child.back());
+            if (pt->child.size() > 0) {
+                for (auto i = pt->child.rbegin(); i != pt->child.rend(); ++i) {
+                    auto node = std::static_pointer_cast<TerminalNode>((*i));
 
-                if (node->kind == TokenKind::NUMBER || node->kind == TokenKind::STRING) {
-                    node->isError = true;
-                    node->message = "Separator is needed!";
+                    if (node->kind == TokenKind::COMMA) {
+                        break;
+                    }
+
+                    if (node->kind == TokenKind::NUMBER || node->kind == TokenKind::STRING) {
+                        pt->isError = true;
+                        node->isError = true;
+                        node->message = "Separator is needed!";
+                        break;
+                    }
                 }
             }
             break;
         }
         case TokenKind::STRING: {
-            if (pt->child.size() > 0 && pt->child.back()->kind == pt::NodeKind::TERMINAL) {
-                auto node = std::static_pointer_cast<pt::TerminalNode>(pt->child.back());
+            if (pt->child.size() > 0 && pt->child.back()->kind == NodeKind::TERMINAL) {
+                for (auto i = pt->child.rbegin(); i != pt->child.rend(); ++i) {
+                    auto node = std::static_pointer_cast<TerminalNode>((*i));
 
-                if (node->kind == TokenKind::NUMBER || node->kind == TokenKind::STRING) {
-                    node->isError = true;
-                    node->message = "Separator is needed!";
+                    if (node->kind == TokenKind::COMMA) {
+                        break;
+                    }
+
+                    if (node->kind == TokenKind::NUMBER || node->kind == TokenKind::STRING) {
+                        pt->isError = true;
+                        node->isError = true;
+                        node->message = "Separator is needed!";
+                        break;
+                    }
                 }
             }
 
@@ -86,67 +122,101 @@ void Parser::makePTREC(std::vector<Token>::const_iterator& t_tokensIterator)
             break;
         }
 
-        makePTStep(t_tokensIterator);
+        if (t_tokensIterator->kind != TokenKind::REC) {
+            makePTStep(t_tokensIterator);
+        } else {
+            break;
+        }
     }
 
     if (!pt->isError) {
         pt->isError = true;
-        pt->message = "Statement is not closed!";
+        pt->child.at(0)->isError = true;
+        pt->child.at(0)->message = "Statement is not closed!";
     }
 }
 
 /*Abstract syntax tree methods*/
 /*==========================================================================*/
 
-std::shared_ptr<ast::Node> Parser::makeAST()
+void Parser::makeAST()
 {
-    ast = std::make_shared<ast::Node>(ast::NodeKind::PROGRAM, nullptr);
-
-    if (pt->kind != pt::NodeKind::END_OF_PROGRAM) {
+    if (pt->kind != NodeKind::END_OF_PROGRAM) {
         for (auto& child : pt->child) {
-            if (child->kind == pt::NodeKind::STATEMENT) {
-                auto node = std::static_pointer_cast<pt::StatementNode>(child);
+            if (child->kind == NodeKind::STATEMENT && !child->isError) {
+                auto node = std::static_pointer_cast<StatementNode>(child);
+                pt = node;
 
-                switch (node->kind) {
-                case pt::StatementKind::REC_CALL: {
-                    ast->child.emplace_back(std::make_shared<ast::RECNode>(ast));
-                    ast = ast->child.back();
-                    pt = node;
+                makeASTREC();
 
-                    makeASTREC();
-
-                    ast = ast->parent;
-                    pt = node->parent;
-                    break;
-                }
-                default:
-                    break;
-                }
+                pt = node->parent;
             }
         }
     }
 
-    return ast;
+    std::sort(ast.begin(), ast.end(), [](auto& el1, auto el2) {
+        return static_cast<uint16_t>(el1->material) > static_cast<uint16_t>(el2->material);
+    });
 }
 
 void Parser::makeASTREC()
 {
+    std::vector<int16_t> numericArgs {};
+    std::string literalArg {};
+
     for (auto& child : pt->child) {
-        if (child->kind == pt::NodeKind::TERMINAL) {
-            auto node = std::static_pointer_cast<pt::TerminalNode>(child);
+        if (child->kind == NodeKind::TERMINAL) {
+            auto node = std::static_pointer_cast<TerminalNode>(child);
 
             switch (node->kind) {
             case TokenKind::NUMBER: {
-                ast->child.emplace_back(std::make_shared<ast::NumberNode>(std::stoi(node->literal), ast));
+                if (isNumber(node->literal)) {
+                    numericArgs.emplace_back(std::stoi(node->literal));
+                }
                 break;
             }
             case TokenKind::STRING: {
-                ast->child.emplace_back(std::make_shared<ast::StringNode>(node->literal, ast));
+                literalArg = node->literal;
                 break;
             }
             default:
                 break;
             }
         }
+    }
+
+    if (numericArgs.size() == 4 && literalArg != "") {
+        Rect::Material material {};
+
+        if (literalArg == "NW") {
+            material = Rect::Material::NW;
+        } else if (literalArg == "ND") {
+            material = Rect::Material::ND;
+        } else if (literalArg == "PD") {
+            material = Rect::Material::PD;
+        } else if (literalArg == "PO") {
+            material = Rect::Material::PO;
+        } else if (literalArg == "CO") {
+            material = Rect::Material::CO;
+        } else if (literalArg == "PO2") {
+            material = Rect::Material::PO2;
+        } else if (literalArg == "M1") {
+            material = Rect::Material::M1;
+        } else if (literalArg == "M2") {
+            material = Rect::Material::M2;
+        } else if (literalArg == "M3") {
+            material = Rect::Material::M3;
+        } else if (literalArg == "M4") {
+            material = Rect::Material::NW;
+        } else if (literalArg == "M5") {
+            material = Rect::Material::NW;
+        } else if (literalArg == "M6") {
+            material = Rect::Material::M6;
+        }
+
+        auto rect = std::make_shared<Rect>(numericArgs[0], numericArgs[1], numericArgs[2], numericArgs[3], material);
+        rect->source = pt;
+
+        ast.emplace_back(rect);
     }
 }
