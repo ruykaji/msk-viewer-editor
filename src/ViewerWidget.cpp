@@ -35,11 +35,6 @@ void ViewerWidget::selectPenAndBrush(const Rect::Material t_material, QPainter* 
         t_painter->setBrush(QBrush(QColor(255, 0, 0)));
         break;
     }
-    case Rect::Material::CO: {
-        t_painter->setPen(QPen(QColor(247, 247, 247), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
-        t_painter->setBrush(QBrush(QColor(247, 247, 247)));
-        break;
-    }
     case Rect::Material::PO2: {
         t_painter->setPen(QPen(QColor(255, 0, 0), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
         t_painter->setBrush(QBrush(QColor(255, 0, 0)));
@@ -50,9 +45,19 @@ void ViewerWidget::selectPenAndBrush(const Rect::Material t_material, QPainter* 
         t_painter->setBrush(QBrush(QColor(0, 0, 255)));
         break;
     }
+    case Rect::Material::CO: {
+        t_painter->setPen(QPen(QColor(247, 247, 247), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
+        t_painter->setBrush(QBrush(QColor(247, 247, 247)));
+        break;
+    }
     case Rect::Material::M2: {
         t_painter->setPen(QPen(QColor(0, 0, 129), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
         t_painter->setBrush(QBrush(QColor(0, 0, 129)));
+        break;
+    }
+    case Rect::Material::VI: {
+        t_painter->setPen(QPen(QColor(247, 247, 247), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
+        t_painter->setBrush(QBrush(QColor(247, 247, 247)));
         break;
     }
     case Rect::Material::M3: {
@@ -60,9 +65,19 @@ void ViewerWidget::selectPenAndBrush(const Rect::Material t_material, QPainter* 
         t_painter->setBrush(QBrush(QColor(0, 0, 255), Qt::BDiagPattern));
         break;
     }
+    case Rect::Material::V2: {
+        t_painter->setPen(QPen(QColor(247, 247, 247), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
+        t_painter->setBrush(QBrush(QColor(247, 247, 247)));
+        break;
+    }
     case Rect::Material::M4: {
         t_painter->setPen(QPen(QColor(52, 252, 52), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
         t_painter->setBrush(QBrush(QColor(52, 252, 52), Qt::FDiagPattern));
+        break;
+    }
+    case Rect::Material::V3: {
+        t_painter->setPen(QPen(QColor(247, 247, 247), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
+        t_painter->setBrush(QBrush(QColor(247, 247, 247)));
         break;
     }
     case Rect::Material::M5: {
@@ -70,15 +85,26 @@ void ViewerWidget::selectPenAndBrush(const Rect::Material t_material, QPainter* 
         t_painter->setBrush(QBrush(QColor(0, 0, 255), Qt::HorPattern));
         break;
     }
+    case Rect::Material::V4: {
+        t_painter->setPen(QPen(QColor(247, 247, 247), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
+        t_painter->setBrush(QBrush(QColor(247, 247, 247)));
+        break;
+    }
     case Rect::Material::M6: {
         t_painter->setPen(QPen(QColor(128, 128, 128), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
         t_painter->setBrush(QBrush(QColor(128, 128, 128), Qt::Dense3Pattern));
         break;
     }
-    default:
+    case Rect::Material::V5: {
+        t_painter->setPen(QPen(QColor(247, 247, 247), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
+        t_painter->setBrush(QBrush(QColor(247, 247, 247)));
+        break;
+    }
+    default: {
         t_painter->setPen(QPen(QColor(Qt::white), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
         t_painter->setBrush(QBrush(QColor(Qt::white)));
         break;
+    }
     }
 }
 
@@ -114,7 +140,7 @@ void ViewerWidget::resizeEvent(QResizeEvent* t_event)
     m_initScale = newInitial;
 }
 
-void ViewerWidget::redraw()
+void ViewerWidget::setNewScaling()
 {
     m_min = { INT16_MAX, INT16_MAX };
     m_max = { 0, 0 };
@@ -128,10 +154,7 @@ void ViewerWidget::redraw()
         m_max.second = std::max(m_max.second, static_cast<int16_t>(rect->top + rect->height));
     }
 
-    double newInitial = std::min((width() * __BORDERS__) / (m_max.first - m_min.first), (height() * __BORDERS__) / (m_max.second - m_min.second));
-
-    m_currentScale = m_currentScale / m_initScale * newInitial;
-    m_initScale = newInitial;
+    resizeEvent(nullptr);
 
     update();
-};
+}

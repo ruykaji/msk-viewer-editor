@@ -68,7 +68,26 @@ void CodeEditorWidget::readFile(const QString& t_fileName)
         file.close();
     }
 
-    setPlainText(text);
+    auto __document = document();
+    auto __textCursor = textCursor();
+
+    __document->blockSignals(true);
+    __document->clear();
+
+    m_parser->makePT(m_lexer->tokenize(text.toStdString()));
+    m_parser->makeAST();
+
+    auto formater = QTextCharFormat();
+
+    formater.setFontPointSize(12);
+
+    uint16_t line {};
+
+    deepMakeText(__textCursor, formater, line, m_parser->pt);
+
+    __document->blockSignals(false);
+
+    documentRecreated();
 }
 
 void CodeEditorWidget::writeFile(const QString& t_fileName)
@@ -93,9 +112,7 @@ void CodeEditorWidget::writeText()
     __document->clear();
     __textCursor.setPosition(0);
 
-    auto tokens = m_lexer->tokenize(file);
-
-    m_parser->makePT(tokens);
+    m_parser->makePT(m_lexer->tokenize(file));
     m_parser->makeAST();
 
     auto formater = QTextCharFormat();

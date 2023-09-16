@@ -13,13 +13,18 @@ class CodeEditorWidget : public QPlainTextEdit {
     Parser* m_parser {};
 
 public:
-    CodeEditorWidget(Lexer* t_lexer, Parser* t_parser, QWidget* t_parent = nullptr);
+    explicit CodeEditorWidget(Lexer* t_lexer, Parser* t_parser, QWidget* t_parent = nullptr);
+
+    void readFile(const QString& t_fileName);
+    void writeFile(const QString& t_fileName);
 
 private:
-    void deepMakeText(QTextCursor& t_textCursor, QTextCharFormat& t_formater, uint16_t& t_line, std::shared_ptr<pt::Node>& t_iterator);
+    void deepMakeText(QTextCursor& t_textCursor, QTextCharFormat& t_formater, uint16_t& t_line, const std::shared_ptr<Node>& t_iterator);
 
 public slots:
     void writeText();
+signals:
+    void documentRecreated();
 };
 
 #endif

@@ -14,7 +14,8 @@ MainWindow::MainWindow(QWidget* t_parent, Qt::WindowFlags t_flags)
     m_codeEditor = new CodeEditorWidget(m_lexer, m_parser, this);
     m_viewerWidget = new ViewerWidget(m_parser, this);
 
-    connect(m_codeEditor, &CodeEditorWidget::textChanged, m_viewerWidget, &ViewerWidget::redraw);
+    connect(m_codeEditor, &CodeEditorWidget::textChanged, m_viewerWidget, [this]() { this->m_viewerWidget->update(); });
+    connect(m_codeEditor, &CodeEditorWidget::documentRecreated, m_viewerWidget, &ViewerWidget::setNewScaling);
 
     m_codeEditor->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
     m_codeEditor->setMaximumWidth(300);
@@ -45,7 +46,8 @@ void MainWindow::open()
 
     m_codeEditor->readFile(fileName);
 };
-void MainWindow::save() {
+void MainWindow::save()
+{
     QString fileName = QFileDialog::getSaveFileName(this, tr("Open topology"), "/home", tr("Topology (*.msk *.MSK)"));
 
     m_codeEditor->writeFile(fileName);

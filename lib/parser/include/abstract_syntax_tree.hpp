@@ -15,14 +15,19 @@ struct Rect {
         DN,
         DP,
         PO,
-        CO,
         PO2,
         ME,
+        CO,
         M2,
+        VI,
         M3,
+        V2,
         M4,
+        V3,
         M5,
-        M6
+        V4,
+        M6,
+        V5
     };
 
     std::shared_ptr<Node> source {};

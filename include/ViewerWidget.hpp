@@ -26,7 +26,7 @@ protected:
     void resizeEvent(QResizeEvent* t_event);
 
 public slots:
-    void redraw();
+    void setNewScaling();
 };
 
 #endif

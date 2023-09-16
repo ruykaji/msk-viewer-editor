@@ -141,6 +141,8 @@ void Parser::makePTREC(std::vector<Token>::const_iterator& t_tokensIterator)
 
 void Parser::makeAST()
 {
+    ast.clear();
+
     if (pt->kind != NodeKind::END_OF_PROGRAM) {
         for (auto& child : pt->child) {
             if (child->kind == NodeKind::STATEMENT && !child->isError) {
@@ -196,22 +198,32 @@ void Parser::makeASTREC()
             material = Rect::Material::DP;
         } else if (literalArg == "PO") {
             material = Rect::Material::PO;
-        } else if (literalArg == "CO") {
-            material = Rect::Material::CO;
         } else if (literalArg == "PO2") {
             material = Rect::Material::PO2;
         } else if (literalArg == "ME") {
             material = Rect::Material::ME;
+        } else if (literalArg == "CO") {
+            material = Rect::Material::CO;
         } else if (literalArg == "M2") {
             material = Rect::Material::M2;
+        } else if (literalArg == "VI") {
+            material = Rect::Material::VI;
         } else if (literalArg == "M3") {
             material = Rect::Material::M3;
+        } else if (literalArg == "V2") {
+            material = Rect::Material::V2;
         } else if (literalArg == "M4") {
             material = Rect::Material::NW;
+        } else if (literalArg == "V3") {
+            material = Rect::Material::V3;
         } else if (literalArg == "M5") {
             material = Rect::Material::NW;
+        } else if (literalArg == "V4") {
+            material = Rect::Material::V4;
         } else if (literalArg == "M6") {
             material = Rect::Material::M6;
+        } else if (literalArg == "V5") {
+            material = Rect::Material::V5;
         }
 
         auto rect = std::make_shared<Rect>(numericArgs[0], numericArgs[1], numericArgs[2], numericArgs[3], material);
