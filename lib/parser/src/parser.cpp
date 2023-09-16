@@ -155,7 +155,7 @@ void Parser::makeAST()
     }
 
     std::sort(ast.begin(), ast.end(), [](auto& el1, auto el2) {
-        return static_cast<uint16_t>(el1->material) > static_cast<uint16_t>(el2->material);
+        return static_cast<uint16_t>(el1->material) < static_cast<uint16_t>(el2->material);
     });
 }
 
@@ -190,18 +190,18 @@ void Parser::makeASTREC()
 
         if (literalArg == "NW") {
             material = Rect::Material::NW;
-        } else if (literalArg == "ND") {
-            material = Rect::Material::ND;
-        } else if (literalArg == "PD") {
-            material = Rect::Material::PD;
+        } else if (literalArg == "DN") {
+            material = Rect::Material::DN;
+        } else if (literalArg == "DP") {
+            material = Rect::Material::DP;
         } else if (literalArg == "PO") {
             material = Rect::Material::PO;
         } else if (literalArg == "CO") {
             material = Rect::Material::CO;
         } else if (literalArg == "PO2") {
             material = Rect::Material::PO2;
-        } else if (literalArg == "M1") {
-            material = Rect::Material::M1;
+        } else if (literalArg == "ME") {
+            material = Rect::Material::ME;
         } else if (literalArg == "M2") {
             material = Rect::Material::M2;
         } else if (literalArg == "M3") {

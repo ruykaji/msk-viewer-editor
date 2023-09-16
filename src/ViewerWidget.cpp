@@ -1,5 +1,3 @@
-#include <QPainter>
-
 #include "ViewerWidget.hpp"
 
 #define __BORDERS__ 0.8
@@ -14,37 +12,74 @@ ViewerWidget::ViewerWidget(Parser* t_parser, QWidget* t_parent)
     setPalette(pal);
 };
 
-void ViewerWidget::updateData()
+void ViewerWidget::selectPenAndBrush(const Rect::Material t_material, QPainter* t_painter)
 {
-    m_min = { INT16_MAX, INT16_MAX };
-    m_max = { 0, 0 };
-
-    for (auto& child : m_parser->ast->child) {
-        if (child->kind == ast::NodeKind::REC_NODE) {
-            auto node = std::static_pointer_cast<ast::RECNode>(child);
-
-            if (node->child.size() == 5) {
-                std::vector<int16_t> value { 0, 0, 0, 0 };
-
-                for (std::size_t i {}; i < 4; ++i) {
-                    if (node->child.at(i)->kind == ast::NodeKind::NUMBER_NODE) {
-                        auto arg = std::static_pointer_cast<ast::NumberNode>(node->child.at(i));
-                        value[i] = arg->value;
-                    }
-                }
-
-                m_min.first = std::min(m_min.first, value[0]);
-                m_min.second = std::min(m_min.second, value[1]);
-                m_max.first = std::max(m_max.first, static_cast<int16_t>(value[0] + value[2]));
-                m_max.second = std::max(m_max.second, static_cast<int16_t>(value[1] + value[3]));
-            }
-        }
+    switch (t_material) {
+    case Rect::Material::NW: {
+        t_painter->setPen(QPen(QColor(55, 146, 55), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
+        t_painter->setBrush(QBrush(QColor(55, 146, 55), Qt::Dense4Pattern));
+        break;
     }
-
-    double newInitial = std::min((width() * __BORDERS__) / (m_max.first - m_min.first), (height() * __BORDERS__) / (m_max.second - m_min.second));
-
-    m_currentScale = m_currentScale / m_initScale * newInitial;
-    m_initScale = newInitial;
+    case Rect::Material::DN: {
+        t_painter->setPen(QPen(QColor(0, 128, 0), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
+        t_painter->setBrush(QBrush(QColor(0, 128, 0)));
+        break;
+    }
+    case Rect::Material::DP: {
+        t_painter->setPen(QPen(QColor(128, 128, 0), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
+        t_painter->setBrush(QBrush(QColor(128, 128, 0)));
+        break;
+    }
+    case Rect::Material::PO: {
+        t_painter->setPen(QPen(QColor(255, 0, 0), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
+        t_painter->setBrush(QBrush(QColor(255, 0, 0)));
+        break;
+    }
+    case Rect::Material::CO: {
+        t_painter->setPen(QPen(QColor(247, 247, 247), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
+        t_painter->setBrush(QBrush(QColor(247, 247, 247)));
+        break;
+    }
+    case Rect::Material::PO2: {
+        t_painter->setPen(QPen(QColor(255, 0, 0), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
+        t_painter->setBrush(QBrush(QColor(255, 0, 0)));
+        break;
+    }
+    case Rect::Material::ME: {
+        t_painter->setPen(QPen(QColor(0, 0, 255), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
+        t_painter->setBrush(QBrush(QColor(0, 0, 255)));
+        break;
+    }
+    case Rect::Material::M2: {
+        t_painter->setPen(QPen(QColor(0, 0, 129), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
+        t_painter->setBrush(QBrush(QColor(0, 0, 129)));
+        break;
+    }
+    case Rect::Material::M3: {
+        t_painter->setPen(QPen(QColor(0, 0, 255), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
+        t_painter->setBrush(QBrush(QColor(0, 0, 255), Qt::BDiagPattern));
+        break;
+    }
+    case Rect::Material::M4: {
+        t_painter->setPen(QPen(QColor(52, 252, 52), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
+        t_painter->setBrush(QBrush(QColor(52, 252, 52), Qt::FDiagPattern));
+        break;
+    }
+    case Rect::Material::M5: {
+        t_painter->setPen(QPen(QColor(0, 0, 255), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
+        t_painter->setBrush(QBrush(QColor(0, 0, 255), Qt::HorPattern));
+        break;
+    }
+    case Rect::Material::M6: {
+        t_painter->setPen(QPen(QColor(128, 128, 128), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
+        t_painter->setBrush(QBrush(QColor(128, 128, 128), Qt::Dense3Pattern));
+        break;
+    }
+    default:
+        t_painter->setPen(QPen(QColor(Qt::white), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
+        t_painter->setBrush(QBrush(QColor(Qt::white)));
+        break;
+    }
 }
 
 void ViewerWidget::paintEvent(QPaintEvent* t_event)
@@ -58,47 +93,45 @@ void ViewerWidget::paintEvent(QPaintEvent* t_event)
     painter->translate((m_max.first - m_min.first) / 2.0, (m_max.second - m_min.second) / 2.0);
     painter->scale(m_currentScale, m_currentScale);
 
-    painter->setPen(QPen(QColor(Qt::white), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
-
     painter->drawLine(QLine(-width() / 2.0, 0, width() / 2.0, 0));
     painter->drawLine(QLine(0, -height() / 2.0, 0, height() / 2.0));
 
-    for (auto& child : m_parser->ast->child) {
-        if (child->kind == ast::NodeKind::REC_NODE) {
-            std::vector<double> value { 0, 0, 0, 0 };
-            auto node = std::static_pointer_cast<ast::RECNode>(child);
-
-            if (node->child.size() == 5) {
-                if (node->child.at(0)->kind == ast::NodeKind::NUMBER_NODE) {
-                    auto arg = std::static_pointer_cast<ast::NumberNode>(node->child.at(0));
-                    value[0] = arg->value;
-                }
-
-                if (node->child.at(1)->kind == ast::NodeKind::NUMBER_NODE) {
-                    auto arg = std::static_pointer_cast<ast::NumberNode>(node->child.at(1));
-                    value[1] = arg->value;
-                }
-
-                if (node->child.at(2)->kind == ast::NodeKind::NUMBER_NODE) {
-                    auto arg = std::static_pointer_cast<ast::NumberNode>(node->child.at(2));
-                    value[2] = arg->value;
-                }
-
-                if (node->child.at(3)->kind == ast::NodeKind::NUMBER_NODE) {
-                    auto arg = std::static_pointer_cast<ast::NumberNode>(node->child.at(3));
-                    value[3] = arg->value;
-                }
-            }
-
-            painter->drawRect(QRect(value[0], value[1], value[2], value[3]));
-        }
+    for (auto& rect : m_parser->ast) {
+        selectPenAndBrush(rect->material, painter);
+        painter->drawRect(QRect(rect->left - m_min.first, rect->top - m_min.second, rect->width, rect->height));
     }
 
     painter->end();
 };
 
+void ViewerWidget::resizeEvent(QResizeEvent* t_event)
+{
+    Q_UNUSED(t_event);
+
+    double newInitial = std::min((width() * __BORDERS__) / (m_max.first - m_min.first), (height() * __BORDERS__) / (m_max.second - m_min.second));
+
+    m_currentScale = m_currentScale / m_initScale * newInitial;
+    m_initScale = newInitial;
+}
+
 void ViewerWidget::redraw()
 {
-    updateData();
+    m_min = { INT16_MAX, INT16_MAX };
+    m_max = { 0, 0 };
+    m_initScale = 1.0;
+    m_currentScale = 1.0;
+
+    for (auto& rect : m_parser->ast) {
+        m_min.first = std::min(m_min.first, rect->left);
+        m_min.second = std::min(m_min.second, rect->top);
+        m_max.first = std::max(m_max.first, static_cast<int16_t>(rect->left + rect->width));
+        m_max.second = std::max(m_max.second, static_cast<int16_t>(rect->top + rect->height));
+    }
+
+    double newInitial = std::min((width() * __BORDERS__) / (m_max.first - m_min.first), (height() * __BORDERS__) / (m_max.second - m_min.second));
+
+    m_currentScale = m_currentScale / m_initScale * newInitial;
+    m_initScale = newInitial;
+
     update();
 };

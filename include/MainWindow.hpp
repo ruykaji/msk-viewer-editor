@@ -4,6 +4,8 @@
 #include <QMainWindow>
 #include <QMenu>
 
+#include "CodeEditorWidget.hpp"
+#include "ViewerWidget.hpp"
 #include "lexer.hpp"
 #include "parser.hpp"
 
@@ -14,20 +16,21 @@ class MainWindow : public QMainWindow {
     Parser* m_parser {};
 
     QMenu* fileMenu;
-    QAction* newAct;
     QAction* openAct;
     QAction* saveAct;
     QAction* exitAct;
 
+    CodeEditorWidget* m_codeEditor {};
+    ViewerWidget* m_viewerWidget {};
+
 public:
-    MainWindow(QWidget* parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());
+    explicit MainWindow(QWidget* parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());
 
 private:
     void createActions();
     void createMenus();
 
 private slots:
-    void newFile();
     void open();
     void save();
 };

@@ -1,9 +1,12 @@
+#include <QFile>
 #include <fstream>
 
 #include "CodeEditorWidget.hpp"
 
 CodeEditorWidget::CodeEditorWidget(Lexer* t_lexer, Parser* t_parser, QWidget* t_parent)
-    : m_lexer(t_lexer), m_parser(t_parser), QPlainTextEdit(t_parent)
+    : m_lexer(t_lexer)
+    , m_parser(t_parser)
+    , QPlainTextEdit(t_parent)
 {
     auto palette = QPalette();
 
@@ -12,47 +15,25 @@ CodeEditorWidget::CodeEditorWidget(Lexer* t_lexer, Parser* t_parser, QWidget* t_
 
     setPalette(palette);
 
-    std::ifstream fin { "/home/alaie/projects/inv.msk" };
-    std::string file {};
-    char ch;
-
-    while (fin >> std::noskipws >> ch) {
-        file += ch;
-    }
-
-    auto tokens = m_lexer->tokenize(file);
-    auto tree = m_parser->makePT(tokens);
-
-    m_parser->makeAST();
-
-    auto formater = QTextCharFormat();
-    auto __textCursor = textCursor();
-
-    formater.setFontPointSize(12);
-
-    uint16_t line {};
-
-    deepMakeText(__textCursor, formater, line, tree);
-
     connect(this, &QPlainTextEdit::textChanged, this, &CodeEditorWidget::writeText);
 };
 
-void CodeEditorWidget::deepMakeText(QTextCursor& t_textCursor, QTextCharFormat& t_formater, uint16_t& t_line, std::shared_ptr<pt::Node>& t_iterator)
+void CodeEditorWidget::deepMakeText(QTextCursor& t_textCursor, QTextCharFormat& t_formater, uint16_t& t_line, const std::shared_ptr<Node>& t_iterator)
 {
-    if (t_iterator->kind != pt::NodeKind::END_OF_PROGRAM) {
-        if (t_iterator->isError) {
-            t_formater.setUnderlineStyle(QTextCharFormat::WaveUnderline);
-            t_formater.setUnderlineColor(Qt::red);
-            t_formater.setToolTip(QString::fromStdString(t_iterator->message));
-        } else {
-            t_formater.setUnderlineStyle(QTextCharFormat::NoUnderline);
-            t_formater.setUnderlineColor(Qt::transparent);
-            t_formater.setToolTip(QString(""));
-        }
-
+    if (t_iterator->kind != NodeKind::END_OF_PROGRAM) {
         for (auto& child : t_iterator->child) {
-            if (child->kind == pt::NodeKind::TERMINAL) {
-                auto node = std::static_pointer_cast<pt::TerminalNode>(child);
+            if (child->kind == NodeKind::TERMINAL) {
+                auto node = std::static_pointer_cast<TerminalNode>(child);
+
+                if (child->isError) {
+                    t_formater.setUnderlineStyle(QTextCharFormat::WaveUnderline);
+                    t_formater.setUnderlineColor(Qt::red);
+                    t_formater.setToolTip(QString::fromStdString(child->message));
+                } else {
+                    t_formater.setUnderlineStyle(QTextCharFormat::NoUnderline);
+                    t_formater.setUnderlineColor(Qt::transparent);
+                    t_formater.setToolTip(QString(""));
+                }
 
                 switch (node->kind) {
                 case TokenKind::REC:
@@ -69,10 +50,35 @@ void CodeEditorWidget::deepMakeText(QTextCursor& t_textCursor, QTextCharFormat& 
 
                 t_textCursor.insertText(QString::fromStdString(node->literal), t_formater);
 
-            } else if (child->kind == pt::NodeKind::STATEMENT) {
+            } else if (child->kind == NodeKind::STATEMENT) {
                 deepMakeText(t_textCursor, t_formater, t_line, child);
             }
         }
+    }
+}
+
+void CodeEditorWidget::readFile(const QString& t_fileName)
+{
+    QFile file { t_fileName };
+    QString text;
+
+    if (file.open(QIODevice::ReadOnly)) {
+        QTextStream in(&file);
+        text = in.readAll();
+        file.close();
+    }
+
+    setPlainText(text);
+}
+
+void CodeEditorWidget::writeFile(const QString& t_fileName)
+{
+    QFile file { t_fileName };
+
+    if (file.open(QIODevice::WriteOnly)) {
+        QTextStream out(&file);
+        out << toPlainText();
+        file.close();
     }
 }
 
@@ -88,8 +94,8 @@ void CodeEditorWidget::writeText()
     __textCursor.setPosition(0);
 
     auto tokens = m_lexer->tokenize(file);
-    auto tree = m_parser->makePT(tokens);
 
+    m_parser->makePT(tokens);
     m_parser->makeAST();
 
     auto formater = QTextCharFormat();
@@ -98,7 +104,7 @@ void CodeEditorWidget::writeText()
 
     uint16_t line {};
 
-    deepMakeText(__textCursor, formater, line, tree);
+    deepMakeText(__textCursor, formater, line, m_parser->pt);
 
     __textCursor.setPosition(cursorPosition > __textCursor.position() ? __textCursor.position() : cursorPosition);
     setTextCursor(__textCursor);

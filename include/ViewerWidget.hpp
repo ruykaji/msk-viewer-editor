@@ -1,6 +1,7 @@
 #ifndef __VIEWER_WIDGET_H__
 #define __VIEWER_WIDGET_H__
 
+#include <QPainter>
 #include <QWidget>
 
 #include "parser.hpp"
@@ -15,13 +16,14 @@ class ViewerWidget : public QWidget {
     double m_currentScale { 1.0 };
 
 public:
-    ViewerWidget(Parser* t_parser, QWidget* t_parent);
+    explicit ViewerWidget(Parser* t_parser, QWidget* t_parent);
 
 private:
-    void updateData();
+    void selectPenAndBrush(const Rect::Material t_material, QPainter* t_painter);
 
 protected:
     void paintEvent(QPaintEvent* t_event);
+    void resizeEvent(QResizeEvent* t_event);
 
 public slots:
     void redraw();
