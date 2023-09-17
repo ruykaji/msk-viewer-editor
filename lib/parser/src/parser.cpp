@@ -5,7 +5,11 @@
 inline bool isNumber(const std::string& t_str)
 {
     for (std::size_t i {}; i < t_str.length(); ++i) {
-        if (!std::isdigit(t_str[0])) {
+        if (i == 0 && t_str.length() > 1 && (t_str[0] == '-' || t_str[0] == '+')) {
+            continue;
+        }
+
+        if (!std::isdigit(t_str[i])) {
             return false;
         }
     }
