@@ -1,3 +1,4 @@
+#include <QApplication>
 #include <QTransform>
 
 #include "ViewerWidget.hpp"
@@ -183,6 +184,20 @@ void ViewerWidget::mouseReleaseEvent(QMouseEvent* event)
     QCursor changedCursor = cursor();
     changedCursor.setShape(Qt::ArrowCursor);
     setCursor(changedCursor);
+}
+
+void ViewerWidget::wheelEvent(QWheelEvent* t_event)
+{
+    if (QGuiApplication::queryKeyboardModifiers().testFlag(Qt::ControlModifier)) {
+        double sigmoid = 1.0 / (1 + std::pow(2.718281282846, -1 * m_scroll));
+
+        if ((sigmoid > 0.5 || t_event->angleDelta().y() > 0) && (sigmoid < 0.995 || t_event->angleDelta().y() < 0)) {
+            m_scroll += 0.1 * (t_event->angleDelta().y() > 0 ? 1 : -1);
+            m_currentScale = m_initScale / (1.0 / (std::pow(2.718281282846, 1 * m_scroll)));
+        }
+
+        update();
+    }
 }
 
 void ViewerWidget::setNewScaling()

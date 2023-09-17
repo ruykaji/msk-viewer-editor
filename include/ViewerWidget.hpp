@@ -3,6 +3,7 @@
 
 #include <QMouseEvent>
 #include <QPainter>
+#include <QWheelEvent>
 #include <QWidget>
 
 #include "parser.hpp"
@@ -15,6 +16,7 @@ class ViewerWidget : public QWidget {
     std::pair<int16_t, int16_t> m_max { 0, 0 };
     double m_initScale { 1.0 };
     double m_currentScale { 1.0 };
+    double m_scroll { 0.0 };
 
     QPoint m_mouseTriggerPos {};
     QPoint m_moveAxesIn {};
@@ -33,6 +35,7 @@ protected:
     void mousePressEvent(QMouseEvent* t_event);
     void mouseMoveEvent(QMouseEvent* t_event);
     void mouseReleaseEvent(QMouseEvent* t_event);
+    void wheelEvent(QWheelEvent* t_event);
 
 public slots:
     void setNewScaling();
