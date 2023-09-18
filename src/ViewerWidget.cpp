@@ -64,10 +64,12 @@ void ViewerWidget::resizeEvent(QResizeEvent* t_event)
 {
     Q_UNUSED(t_event);
 
-    double newInitial = std::min((width() * __BORDERS__) / (m_max.first - m_min.first), (height() * __BORDERS__) / (m_max.second - m_min.second));
+    if (m_parser->ast.size() != 0) {
+        double newInitial = std::min((width() * __BORDERS__) / (m_max.first - m_min.first), (height() * __BORDERS__) / (m_max.second - m_min.second));
 
-    m_currentScale = m_currentScale / m_initScale * newInitial;
-    m_initScale = newInitial;
+        m_currentScale = m_currentScale / m_initScale * newInitial;
+        m_initScale = newInitial;
+    }
 }
 
 void ViewerWidget::mousePressEvent(QMouseEvent* t_event)
@@ -106,8 +108,15 @@ void ViewerWidget::mouseReleaseEvent(QMouseEvent* event)
         changedCursor.setShape(Qt::ArrowCursor);
         setCursor(changedCursor);
     } else {
-        m_isDrawing = false;
+        QTransform rotate(1, 0, 0, -1, 0, 0);
+
+        auto rect = rotate.mapRect(QRect(m_mouseTriggerPos / m_currentScale - m_moveAxesIn, m_mouseCurrentPos / m_currentScale - m_moveAxesIn));
+
+        m_parser->addRECNode(rect.left(), rect.top(), rect.width(), rect.height(), m_drawingMaterial);
         m_drawingMaterial = Rect::Material::None;
+        m_isDrawing = false;
+
+        newRect();
     }
 }
 

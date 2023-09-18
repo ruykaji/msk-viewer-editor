@@ -44,6 +44,9 @@ protected:
 public slots:
     void setNewScaling();
     void selectDrawingMaterial(Rect::Material& t_material);
+
+signals:
+    void newRect();
 };
 
 #endif

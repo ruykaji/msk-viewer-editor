@@ -23,6 +23,7 @@ private:
 
 public slots:
     void writeText();
+    void newRect();
 signals:
     void documentRecreated();
 };

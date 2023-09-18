@@ -131,3 +131,23 @@ void CodeEditorWidget::writeText()
 
     __document->blockSignals(false);
 }
+
+void CodeEditorWidget::newRect()
+{
+    auto __document = document();
+    auto __textCursor = textCursor();
+
+    __document->blockSignals(true);
+    __document->clear();
+    __textCursor.setPosition(0);
+
+    auto formater = QTextCharFormat();
+
+    formater.setFontPointSize(12);
+
+    uint16_t line {};
+
+    deepMakeText(__textCursor, formater, line, m_parser->pt);
+
+    __document->blockSignals(false);
+};

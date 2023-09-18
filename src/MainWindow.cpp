@@ -17,6 +17,7 @@ MainWindow::MainWindow(QWidget* t_parent, Qt::WindowFlags t_flags)
 
     connect(m_codeEditor, &CodeEditorWidget::textChanged, m_viewerWidget, [this]() { this->m_viewerWidget->update(); });
     connect(m_codeEditor, &CodeEditorWidget::documentRecreated, m_viewerWidget, &ViewerWidget::setNewScaling);
+    connect(m_viewerWidget, &ViewerWidget::newRect, m_codeEditor, &CodeEditorWidget::newRect);
     connect(m_drawPanelWidget, &DrawPanelWidget::selected, m_viewerWidget, &ViewerWidget::selectDrawingMaterial);
 
     auto __centralWidget = new QWidget(this);
