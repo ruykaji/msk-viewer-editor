@@ -5,6 +5,7 @@
 #include <QMenu>
 
 #include "CodeEditorWidget.hpp"
+#include "DrawPanelWidget.hpp"
 #include "ViewerWidget.hpp"
 #include "lexer.hpp"
 #include "parser.hpp"
@@ -22,6 +23,7 @@ class MainWindow : public QMainWindow {
 
     CodeEditorWidget* m_codeEditor {};
     ViewerWidget* m_viewerWidget {};
+    DrawPanelWidget* m_drawPanelWidget {};
 
 public:
     explicit MainWindow(QWidget* parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());

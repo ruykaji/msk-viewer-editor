@@ -13,20 +13,18 @@ MainWindow::MainWindow(QWidget* t_parent, Qt::WindowFlags t_flags)
     m_parser = new Parser();
     m_codeEditor = new CodeEditorWidget(m_lexer, m_parser, this);
     m_viewerWidget = new ViewerWidget(m_parser, this);
+    m_drawPanelWidget = new DrawPanelWidget(this);
 
     connect(m_codeEditor, &CodeEditorWidget::textChanged, m_viewerWidget, [this]() { this->m_viewerWidget->update(); });
     connect(m_codeEditor, &CodeEditorWidget::documentRecreated, m_viewerWidget, &ViewerWidget::setNewScaling);
-
-    m_codeEditor->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
-    m_codeEditor->setMaximumWidth(300);
-
-    m_viewerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    connect(m_drawPanelWidget, &DrawPanelWidget::selected, m_viewerWidget, &ViewerWidget::selectDrawingMaterial);
 
     auto __centralWidget = new QWidget(this);
     auto hbox = new QHBoxLayout(__centralWidget);
 
     hbox->addWidget(m_codeEditor);
     hbox->addWidget(m_viewerWidget);
+    hbox->addWidget(m_drawPanelWidget);
     hbox->setContentsMargins(0, 0, 0, 0);
 
     __centralWidget->setLayout(hbox);

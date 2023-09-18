@@ -9,6 +9,7 @@
 #include "parser.hpp"
 
 class ViewerWidget : public QWidget {
+    Q_OBJECT
 
     Parser* m_parser;
 
@@ -18,7 +19,11 @@ class ViewerWidget : public QWidget {
     double m_currentScale { 1.0 };
     double m_scroll { 0.0 };
 
+    bool m_isDrawing { false };
+    Rect::Material m_drawingMaterial { Rect::Material::None };
+
     QPoint m_mouseTriggerPos {};
+    QPoint m_mouseCurrentPos {};
     QPoint m_moveAxesIn {};
     QPoint m_axesPos {};
 
@@ -26,7 +31,6 @@ public:
     explicit ViewerWidget(Parser* t_parser, QWidget* t_parent);
 
 private:
-    void selectPenAndBrush(const Rect::Material t_material, QPainter* t_painter);
     void drawGrid(QPainter* t_painter);
 
 protected:
@@ -39,6 +43,7 @@ protected:
 
 public slots:
     void setNewScaling();
+    void selectDrawingMaterial(Rect::Material& t_material);
 };
 
 #endif

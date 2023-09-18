@@ -8,8 +8,8 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-set(SRC main.cpp ./src/MainWindow.cpp ./src/CodeEditorWidget.cpp ./src/ViewerWidget.cpp)
-set(HDR ./include/MainWindow.hpp ./include/CodeEditorWidget.hpp ./include/ViewerWidget.hpp)
+set(SRC main.cpp ./src/MainWindow.cpp ./src/CodeEditorWidget.cpp ./src/ViewerWidget.cpp ./src/DrawPanelWidget.cpp ./src/DrawData.cpp)
+set(HDR ./include/MainWindow.hpp ./include/CodeEditorWidget.hpp ./include/ViewerWidget.hpp ./include/DrawPanelWidget.hpp ./include/DrawData.hpp)
 
 add_executable(main ${SRC} ${HDR})
 

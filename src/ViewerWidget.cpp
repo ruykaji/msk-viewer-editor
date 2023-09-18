@@ -1,6 +1,7 @@
 #include <QApplication>
 #include <QTransform>
 
+#include "DrawData.hpp"
 #include "ViewerWidget.hpp"
 
 constexpr double __BORDERS__ = 0.8;
@@ -12,107 +13,13 @@ ViewerWidget::ViewerWidget(Parser* t_parser, QWidget* t_parent)
     : m_parser(t_parser)
     , QWidget(t_parent)
 {
+    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
     QPalette pal;
     pal.setColor(QPalette::Window, QColor(16, 16, 16));
     setAutoFillBackground(true);
     setPalette(pal);
 };
-
-void ViewerWidget::selectPenAndBrush(const Rect::Material t_material, QPainter* t_painter)
-{
-    switch (t_material) {
-    case Rect::Material::NW: {
-        t_painter->setPen(QPen(QColor(55, 146, 55), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
-        t_painter->setBrush(QBrush(QColor(55, 146, 55), Qt::Dense4Pattern));
-        break;
-    }
-    case Rect::Material::DN: {
-        t_painter->setPen(QPen(QColor(0, 128, 0), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
-        t_painter->setBrush(QBrush(QColor(0, 128, 0)));
-        break;
-    }
-    case Rect::Material::DP: {
-        t_painter->setPen(QPen(QColor(128, 128, 0), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
-        t_painter->setBrush(QBrush(QColor(128, 128, 0)));
-        break;
-    }
-    case Rect::Material::PO: {
-        t_painter->setPen(QPen(QColor(255, 0, 0), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
-        t_painter->setBrush(QBrush(QColor(255, 0, 0)));
-        break;
-    }
-    case Rect::Material::PO2: {
-        t_painter->setPen(QPen(QColor(255, 0, 0), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
-        t_painter->setBrush(QBrush(QColor(255, 0, 0)));
-        break;
-    }
-    case Rect::Material::ME: {
-        t_painter->setPen(QPen(QColor(0, 0, 255), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
-        t_painter->setBrush(QBrush(QColor(0, 0, 255)));
-        break;
-    }
-    case Rect::Material::CO: {
-        t_painter->setPen(QPen(QColor(247, 247, 247), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
-        t_painter->setBrush(QBrush(QColor(247, 247, 247)));
-        break;
-    }
-    case Rect::Material::M2: {
-        t_painter->setPen(QPen(QColor(0, 0, 129), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
-        t_painter->setBrush(QBrush(QColor(0, 0, 129)));
-        break;
-    }
-    case Rect::Material::VI: {
-        t_painter->setPen(QPen(QColor(247, 247, 247), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
-        t_painter->setBrush(QBrush(QColor(247, 247, 247)));
-        break;
-    }
-    case Rect::Material::M3: {
-        t_painter->setPen(QPen(QColor(0, 0, 255), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
-        t_painter->setBrush(QBrush(QColor(0, 0, 255), Qt::BDiagPattern));
-        break;
-    }
-    case Rect::Material::V2: {
-        t_painter->setPen(QPen(QColor(247, 247, 247), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
-        t_painter->setBrush(QBrush(QColor(247, 247, 247)));
-        break;
-    }
-    case Rect::Material::M4: {
-        t_painter->setPen(QPen(QColor(52, 252, 52), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
-        t_painter->setBrush(QBrush(QColor(52, 252, 52), Qt::FDiagPattern));
-        break;
-    }
-    case Rect::Material::V3: {
-        t_painter->setPen(QPen(QColor(247, 247, 247), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
-        t_painter->setBrush(QBrush(QColor(247, 247, 247)));
-        break;
-    }
-    case Rect::Material::M5: {
-        t_painter->setPen(QPen(QColor(0, 0, 255), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
-        t_painter->setBrush(QBrush(QColor(0, 0, 255), Qt::HorPattern));
-        break;
-    }
-    case Rect::Material::V4: {
-        t_painter->setPen(QPen(QColor(247, 247, 247), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
-        t_painter->setBrush(QBrush(QColor(247, 247, 247)));
-        break;
-    }
-    case Rect::Material::M6: {
-        t_painter->setPen(QPen(QColor(128, 128, 128), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
-        t_painter->setBrush(QBrush(QColor(128, 128, 128), Qt::Dense3Pattern));
-        break;
-    }
-    case Rect::Material::V5: {
-        t_painter->setPen(QPen(QColor(247, 247, 247), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
-        t_painter->setBrush(QBrush(QColor(247, 247, 247)));
-        break;
-    }
-    default: {
-        t_painter->setPen(QPen(QColor(Qt::white), 1.0 / m_currentScale, Qt::SolidLine, Qt::RoundCap));
-        t_painter->setBrush(QBrush(QColor(Qt::white)));
-        break;
-    }
-    }
-}
 
 void ViewerWidget::drawGrid(QPainter* t_painter)
 {
@@ -130,18 +37,24 @@ void ViewerWidget::paintEvent(QPaintEvent* t_event)
     QPainter* painter = new QPainter();
 
     painter->begin(this);
+
     painter->translate(m_moveAxesIn * m_currentScale);
     painter->scale(m_currentScale, m_currentScale);
 
     QTransform rotate(1, 0, 0, -1, 0, 0);
 
     for (auto& rect : m_parser->ast) {
-        selectPenAndBrush(rect->material, painter);
+        selectPenAndBrush(rect->material, 1.0 / m_currentScale, painter);
 
         QRect qRect(rect->left, rect->top, rect->width, rect->height);
         qRect = rotate.mapRect(qRect);
 
         painter->drawRect(qRect);
+    }
+
+    if (m_isDrawing) {
+        selectPenAndBrush(m_drawingMaterial, 1.0 / m_currentScale, painter);
+        painter->drawRect(QRect(m_mouseTriggerPos / m_currentScale - m_moveAxesIn, m_mouseCurrentPos / m_currentScale - m_moveAxesIn));
     }
 
     painter->end();
@@ -162,16 +75,23 @@ void ViewerWidget::mousePressEvent(QMouseEvent* t_event)
     if (t_event->button() == Qt::LeftButton) {
         m_mouseTriggerPos = t_event->pos();
 
-        QCursor changedCursor = cursor();
-        changedCursor.setShape(Qt::ClosedHandCursor);
-        setCursor(changedCursor);
+        if (!m_isDrawing) {
+            QCursor changedCursor = cursor();
+            changedCursor.setShape(Qt::ClosedHandCursor);
+            setCursor(changedCursor);
+        }
     }
 }
 
 void ViewerWidget::mouseMoveEvent(QMouseEvent* t_event)
 {
     if (t_event->buttons() & Qt::LeftButton) {
-        m_moveAxesIn = m_axesPos - (m_mouseTriggerPos - t_event->pos()) / m_currentScale;
+
+        if (!m_isDrawing) {
+            m_moveAxesIn = m_axesPos - (m_mouseTriggerPos - t_event->pos()) / m_currentScale;
+        } else {
+            m_mouseCurrentPos = t_event->pos();
+        }
 
         update();
     }
@@ -181,9 +101,14 @@ void ViewerWidget::mouseReleaseEvent(QMouseEvent* event)
 {
     m_axesPos = m_moveAxesIn;
 
-    QCursor changedCursor = cursor();
-    changedCursor.setShape(Qt::ArrowCursor);
-    setCursor(changedCursor);
+    if (!m_isDrawing) {
+        QCursor changedCursor = cursor();
+        changedCursor.setShape(Qt::ArrowCursor);
+        setCursor(changedCursor);
+    } else {
+        m_isDrawing = false;
+        m_drawingMaterial = Rect::Material::None;
+    }
 }
 
 void ViewerWidget::wheelEvent(QWheelEvent* t_event)
@@ -222,4 +147,10 @@ void ViewerWidget::setNewScaling()
     m_moveAxesIn = m_axesPos;
 
     update();
+}
+
+void ViewerWidget::selectDrawingMaterial(Rect::Material& t_material)
+{
+    m_isDrawing = true;
+    m_drawingMaterial = t_material;
 }
