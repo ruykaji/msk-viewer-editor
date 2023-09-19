@@ -12,6 +12,14 @@
 class ViewerWidget : public QWidget {
     Q_OBJECT
 
+    enum class Mode {
+        DEFAULT,
+        DRAWING,
+        DRAGING,
+    };
+
+    Mode m_mode  {};
+    
     Parser* m_parser {};
     DrawContextMenu* m_contextMenu {};
 
@@ -23,13 +31,12 @@ class ViewerWidget : public QWidget {
     double m_currentScale { 1.0 };
     double m_scroll { 0.0 };
 
-    bool m_isDrawing { false };
     Rect::Material m_drawingMaterial { Rect::Material::ME };
 
-    QPointF m_mouseTriggerPos {};
-    QPointF m_mouseCurrentPos {};
-    QPointF m_moveAxesIn {};
-    QPointF m_axesPos {};
+    QPoint m_mouseTriggerPos {};
+    QPoint m_mouseCurrentPos {};
+    QPoint m_moveAxesIn {};
+    QPoint m_axesPos {};
 
 public:
     explicit ViewerWidget(Parser* t_parser, QWidget* t_parent);

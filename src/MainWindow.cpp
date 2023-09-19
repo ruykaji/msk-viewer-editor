@@ -2,6 +2,7 @@
 #include <QHBoxLayout>
 #include <QMenu>
 #include <QMenuBar>
+#include <QSplitter>
 #include <QVBoxLayout>
 #include <QWidgetAction>
 
@@ -14,21 +15,18 @@ MainWindow::MainWindow(QWidget* t_parent, Qt::WindowFlags t_flags)
     m_parser = new Parser();
     m_codeEditor = new CodeEditorWidget(m_lexer, m_parser, this);
     m_viewerWidget = new ViewerWidget(m_parser, this);
-    
+
     connect(m_codeEditor, &CodeEditorWidget::textChanged, m_viewerWidget, [this]() { this->m_viewerWidget->update(); });
     connect(m_codeEditor, &CodeEditorWidget::documentRecreated, m_viewerWidget, &ViewerWidget::setNewScaling);
     connect(m_viewerWidget, &ViewerWidget::newRect, m_codeEditor, &CodeEditorWidget::newRect);
 
-    auto __centralWidget = new QWidget(this);
-    auto hbox = new QHBoxLayout(__centralWidget);
+    QSplitter* splitter = new QSplitter(this);
 
-    hbox->addWidget(m_codeEditor);
-    hbox->addWidget(m_viewerWidget);
-    hbox->setContentsMargins(0, 0, 0, 0);
+    splitter->addWidget(m_codeEditor);
+    splitter->addWidget(m_viewerWidget);
+    splitter->setSizes(QList<int>() << 200 << 1080);
 
-    __centralWidget->setLayout(hbox);
-
-    setCentralWidget(__centralWidget);
+    setCentralWidget(splitter);
     createActions();
     createMenus();
 
@@ -48,6 +46,11 @@ void MainWindow::createActions()
     saveAct->setShortcuts(QKeySequence::Save);
     saveAct->setStatusTip(tr("Save a file"));
     connect(saveAct, &QAction::triggered, this, &MainWindow::save);
+
+    exitAct = new QAction(tr("&Exit"), this);
+    exitAct->setShortcuts(QKeySequence::Close);
+    exitAct->setStatusTip(tr("Exit from the program"));
+    connect(exitAct, &QAction::triggered, this, &MainWindow::exit);
 }
 
 void MainWindow::createMenus()
@@ -56,7 +59,7 @@ void MainWindow::createMenus()
     fileMenu->addAction(openAct);
     fileMenu->addAction(saveAct);
     fileMenu->addSeparator();
-    // fileMenu->addAction(exitAct);
+    fileMenu->addAction(exitAct);
 }
 
 void MainWindow::open()
@@ -71,4 +74,9 @@ void MainWindow::save()
     QString fileName = QFileDialog::getSaveFileName(this, tr("Open topology"), "/home", tr("Topology (*.msk *.MSK)"));
 
     m_codeEditor->writeFile(fileName);
+};
+
+void MainWindow::exit()
+{
+    close();
 };

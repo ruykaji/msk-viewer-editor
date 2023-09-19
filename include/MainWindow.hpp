@@ -33,6 +33,7 @@ private:
 private slots:
     void open();
     void save();
+    void exit();
 };
 
 #endif

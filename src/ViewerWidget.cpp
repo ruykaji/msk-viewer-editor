@@ -87,9 +87,9 @@ void ViewerWidget::paintEvent(QPaintEvent* t_event)
         painter->drawRect(qRect);
     }
 
-    if (m_isDrawing) {
+    if (m_mode == Mode::DRAWING) {
         selectPenAndBrush(m_drawingMaterial, 1.0 / m_currentScale, painter);
-        painter->drawRect(QRectF(m_mouseTriggerPos / m_currentScale - m_moveAxesIn, m_mouseCurrentPos / m_currentScale - m_moveAxesIn));
+        painter->drawRect(QRect(m_mouseTriggerPos / m_currentScale - m_moveAxesIn, m_mouseCurrentPos / m_currentScale - m_moveAxesIn));
     }
 
     painter->end();
@@ -121,12 +121,13 @@ void ViewerWidget::mousePressEvent(QMouseEvent* t_event)
 {
     switch (t_event->button()) {
     case Qt::MiddleButton: {
+        m_mode = Mode::DRAGING;
         m_mouseTriggerPos = t_event->pos();
         setCursor(QCursor(Qt::ClosedHandCursor));
         break;
     }
     case Qt::LeftButton: {
-        m_isDrawing = true;
+        m_mode = Mode::DRAWING;
         m_mouseTriggerPos = t_event->pos();
         m_mouseCurrentPos = m_mouseTriggerPos;
         break;
@@ -144,31 +145,49 @@ void ViewerWidget::mousePressEvent(QMouseEvent* t_event)
 
 void ViewerWidget::mouseMoveEvent(QMouseEvent* t_event)
 {
-    if (!m_isDrawing && t_event->buttons() & Qt::MiddleButton) {
+    switch (m_mode) {
+    case Mode::DRAGING: {
         m_moveAxesIn = m_axesPos - (m_mouseTriggerPos - t_event->pos()) / m_currentScale;
         update();
-    } else if (t_event->buttons() & Qt::LeftButton) {
+        break;
+    }
+    case Mode::DRAWING: {
         m_mouseCurrentPos = t_event->pos();
         update();
+        break;
+    }
+    default:
+        break;
     }
 }
 
-void ViewerWidget::mouseReleaseEvent(QMouseEvent* event)
+void ViewerWidget::mouseReleaseEvent(QMouseEvent* t_event)
 {
-    if (!m_isDrawing) {
+    switch (m_mode) {
+    case Mode::DRAGING: {
+        m_mode = Mode::DEFAULT;
         m_axesPos = m_moveAxesIn;
         setCursor(QCursor(Qt::ArrowCursor));
-    } else {
+        update();
+        break;
+    }
+    case Mode::DRAWING: {
         if (m_mouseCurrentPos != m_mouseTriggerPos) {
             QTransform rotate(1, 0, 0, -1, 0, 0);
 
-            auto rect = rotate.mapRect(QRectF(m_mouseTriggerPos / m_currentScale - m_moveAxesIn, m_mouseCurrentPos / m_currentScale - m_moveAxesIn));
+            auto rect = rotate.mapRect(QRect(m_mouseTriggerPos / m_currentScale - m_moveAxesIn, m_mouseCurrentPos / m_currentScale - m_moveAxesIn));
 
             m_parser->addRECNode(rect.left(), rect.top(), rect.width(), rect.height(), m_drawingMaterial);
-            m_isDrawing = false;
+            m_mode = Mode::DEFAULT;
 
             newRect();
+            update();
         }
+        break;
+    }
+
+    default:
+        break;
     }
 }
 
@@ -184,7 +203,7 @@ void ViewerWidget::wheelEvent(QWheelEvent* t_event)
             auto scaleDiff = newCurrentScale / m_currentScale;
 
             m_currentScale = newCurrentScale;
-            m_moveAxesIn = m_axesPos - (scaleDiff - 1) * t_event->position() / m_currentScale;
+            m_moveAxesIn = (m_axesPos - (scaleDiff - 1) * t_event->position() / m_currentScale).toPoint();
             m_axesPos = m_moveAxesIn;
         }
 

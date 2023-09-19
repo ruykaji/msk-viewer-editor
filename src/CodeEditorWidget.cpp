@@ -8,8 +8,8 @@ CodeEditorWidget::CodeEditorWidget(Lexer* t_lexer, Parser* t_parser, QWidget* t_
     , m_parser(t_parser)
     , QPlainTextEdit(t_parent)
 {
-    setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
-    setFixedWidth(450);
+    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    setMinimumWidth(200);
 
     auto palette = QPalette();
 
@@ -62,40 +62,41 @@ void CodeEditorWidget::deepMakeText(QTextCursor& t_textCursor, QTextCharFormat& 
 
 void CodeEditorWidget::readFile(const QString& t_fileName)
 {
-    QFile file { t_fileName };
+    QFile file(t_fileName);
     QString text;
 
     if (file.open(QIODevice::ReadOnly)) {
         QTextStream in(&file);
         text = in.readAll();
+
+        auto __document = document();
+        auto __textCursor = textCursor();
+
+        __document->blockSignals(true);
+        __document->clear();
+
+        m_parser->makePT(m_lexer->tokenize(text.toStdString()));
+        m_parser->makeAST();
+
+        auto formater = QTextCharFormat();
+
+        formater.setFontPointSize(12);
+
+        uint16_t line {};
+
+        deepMakeText(__textCursor, formater, line, m_parser->pt);
+
+        __document->blockSignals(false);
+
+        documentRecreated();
+
         file.close();
     }
-
-    auto __document = document();
-    auto __textCursor = textCursor();
-
-    __document->blockSignals(true);
-    __document->clear();
-
-    m_parser->makePT(m_lexer->tokenize(text.toStdString()));
-    m_parser->makeAST();
-
-    auto formater = QTextCharFormat();
-
-    formater.setFontPointSize(12);
-
-    uint16_t line {};
-
-    deepMakeText(__textCursor, formater, line, m_parser->pt);
-
-    __document->blockSignals(false);
-
-    documentRecreated();
 }
 
 void CodeEditorWidget::writeFile(const QString& t_fileName)
 {
-    QFile file { t_fileName };
+    QFile file(t_fileName);
 
     if (file.open(QIODevice::WriteOnly)) {
         QTextStream out(&file);
