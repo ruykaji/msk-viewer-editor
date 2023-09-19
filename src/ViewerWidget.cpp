@@ -32,6 +32,7 @@ void ViewerWidget::drawGrid(QPainter* t_painter)
     auto heightCount = height() / 1;
 
     for (std::size_t i = 0; i < widthCount; ++i) {
+
     }
 }
 
@@ -120,14 +121,16 @@ void ViewerWidget::mouseReleaseEvent(QMouseEvent* event)
         m_axesPos = m_moveAxesIn;
         setCursor(QCursor(Qt::ArrowCursor));
     } else {
-        QTransform rotate(1, 0, 0, -1, 0, 0);
+        if(m_mouseCurrentPos != m_mouseTriggerPos){
+            QTransform rotate(1, 0, 0, -1, 0, 0);
 
-        auto rect = rotate.mapRect(QRectF(m_mouseTriggerPos / m_currentScale - m_moveAxesIn, m_mouseCurrentPos / m_currentScale - m_moveAxesIn));
+            auto rect = rotate.mapRect(QRectF(m_mouseTriggerPos / m_currentScale - m_moveAxesIn, m_mouseCurrentPos / m_currentScale - m_moveAxesIn));
 
-        m_parser->addRECNode(rect.left(), rect.top(), rect.width(), rect.height(), m_drawingMaterial);
-        m_isDrawing = false;
+            m_parser->addRECNode(rect.left(), rect.top(), rect.width(), rect.height(), m_drawingMaterial);
+            m_isDrawing = false;
 
-        newRect();
+            newRect();
+        }
     }
 }
 
