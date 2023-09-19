@@ -1,6 +1,6 @@
 #include <QApplication>
-#include <QTransform>
 #include <QMenu>
+#include <QTransform>
 
 #include "DrawData.hpp"
 #include "ViewerWidget.hpp"
@@ -17,7 +17,7 @@ ViewerWidget::ViewerWidget(Parser* t_parser, QWidget* t_parent)
     m_contextMenu = new DrawContextMenu(this);
 
     connect(m_contextMenu, &DrawContextMenu::selectDrawingMaterial, this, &ViewerWidget::selectDrawingMaterial);
-    
+
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     QPalette pal;
@@ -32,8 +32,37 @@ void ViewerWidget::drawGrid(QPainter* t_painter)
     auto heightCount = height() / 1;
 
     for (std::size_t i = 0; i < widthCount; ++i) {
-
     }
+}
+
+void ViewerWidget::setMinMax()
+{
+    m_min = { INT16_MAX, INT16_MAX };
+    m_max = { 0, 0 };
+    m_initScale = 1.0;
+    m_currentScale = 1.0;
+
+    for (auto& rect : m_parser->ast) {
+        m_min.first = std::min(m_min.first, rect->left);
+        m_min.second = std::min(m_min.second, rect->top);
+        m_max.first = std::max(m_max.first, static_cast<int16_t>(rect->left + rect->width));
+        m_max.second = std::max(m_max.second, static_cast<int16_t>(rect->top + rect->height));
+    }
+}
+
+void ViewerWidget::resetAxisPos()
+{
+    if (m_isScaleSet) {
+        QTransform rotate(1, 0, 0, -1, 0, 0);
+
+        auto borders = rotate.mapRect(QRect(m_min.first, m_min.second, m_max.first - m_min.first, m_max.second - m_min.second));
+
+        m_axesPos = QPoint(-borders.left(), height() / m_currentScale - borders.bottom());
+    } else {
+        m_axesPos = QPoint(0, height());
+    }
+
+    m_moveAxesIn = m_axesPos;
 }
 
 void ViewerWidget::paintEvent(QPaintEvent* t_event)
@@ -70,7 +99,17 @@ void ViewerWidget::resizeEvent(QResizeEvent* t_event)
 {
     Q_UNUSED(t_event);
 
+    if (!m_isPositionSet) {
+        resetAxisPos();
+        m_isPositionSet = true;
+    }
+
     if (m_parser->ast.size() != 0) {
+        if (!m_isScaleSet) {
+            setMinMax();
+            m_isScaleSet = true;
+        }
+
         double newInitial = std::min((width() * __BORDERS__) / (m_max.first - m_min.first), (height() * __BORDERS__) / (m_max.second - m_min.second));
 
         m_currentScale = m_currentScale / m_initScale * newInitial;
@@ -80,20 +119,19 @@ void ViewerWidget::resizeEvent(QResizeEvent* t_event)
 
 void ViewerWidget::mousePressEvent(QMouseEvent* t_event)
 {
-    switch (t_event->button())
-    {
-    case Qt::MiddleButton:{
+    switch (t_event->button()) {
+    case Qt::MiddleButton: {
         m_mouseTriggerPos = t_event->pos();
         setCursor(QCursor(Qt::ClosedHandCursor));
         break;
     }
-    case Qt::LeftButton :{
+    case Qt::LeftButton: {
         m_isDrawing = true;
         m_mouseTriggerPos = t_event->pos();
         m_mouseCurrentPos = m_mouseTriggerPos;
         break;
     }
-    case Qt::RightButton:{
+    case Qt::RightButton: {
         m_contextMenu->popup(mapToGlobal(t_event->pos()));
         break;
     }
@@ -106,7 +144,7 @@ void ViewerWidget::mousePressEvent(QMouseEvent* t_event)
 
 void ViewerWidget::mouseMoveEvent(QMouseEvent* t_event)
 {
-    if (t_event->buttons() & Qt::MiddleButton) {
+    if (!m_isDrawing && t_event->buttons() & Qt::MiddleButton) {
         m_moveAxesIn = m_axesPos - (m_mouseTriggerPos - t_event->pos()) / m_currentScale;
         update();
     } else if (t_event->buttons() & Qt::LeftButton) {
@@ -121,7 +159,7 @@ void ViewerWidget::mouseReleaseEvent(QMouseEvent* event)
         m_axesPos = m_moveAxesIn;
         setCursor(QCursor(Qt::ArrowCursor));
     } else {
-        if(m_mouseCurrentPos != m_mouseTriggerPos){
+        if (m_mouseCurrentPos != m_mouseTriggerPos) {
             QTransform rotate(1, 0, 0, -1, 0, 0);
 
             auto rect = rotate.mapRect(QRectF(m_mouseTriggerPos / m_currentScale - m_moveAxesIn, m_mouseCurrentPos / m_currentScale - m_moveAxesIn));
@@ -141,12 +179,12 @@ void ViewerWidget::wheelEvent(QWheelEvent* t_event)
 
         if ((sigmoid > 0.5 || t_event->angleDelta().y() > 0) && (sigmoid < 0.995 || t_event->angleDelta().y() < 0)) {
             m_scroll += 0.1 * (t_event->angleDelta().y() > 0 ? 1 : -1);
-            
+
             auto newCurrentScale = m_initScale / (1.0 / (std::pow(2.718281282846, 1 * m_scroll)));
             auto scaleDiff = newCurrentScale / m_currentScale;
-            
+
             m_currentScale = newCurrentScale;
-            m_moveAxesIn = m_axesPos - (scaleDiff -1) * t_event->position() / m_currentScale;
+            m_moveAxesIn = m_axesPos - (scaleDiff - 1) * t_event->position() / m_currentScale;
             m_axesPos = m_moveAxesIn;
         }
 
@@ -156,25 +194,9 @@ void ViewerWidget::wheelEvent(QWheelEvent* t_event)
 
 void ViewerWidget::setNewScaling()
 {
-    m_min = { INT16_MAX, INT16_MAX };
-    m_max = { 0, 0 };
-    m_initScale = 1.0;
-    m_currentScale = 1.0;
-
-    for (auto& rect : m_parser->ast) {
-        m_min.first = std::min(m_min.first, rect->left);
-        m_min.second = std::min(m_min.second, rect->top);
-        m_max.first = std::max(m_max.first, static_cast<int16_t>(rect->left + rect->width));
-        m_max.second = std::max(m_max.second, static_cast<int16_t>(rect->top + rect->height));
-    }
-
+    setMinMax();
     resizeEvent(nullptr);
-
-    QTransform rotate(1, 0, 0, -1, 0, 0);
-    auto borders = rotate.mapRect(QRect(m_min.first, m_min.second, m_max.first - m_min.first, m_max.second - m_min.second));
-    m_axesPos = QPoint(-borders.left() * __LEFT_SIDE_SHIFT__, height() / m_currentScale - borders.bottom() * __BOTTOM_SIDE_SHIFT__);
-    m_moveAxesIn = m_axesPos;
-
+    resetAxisPos();
     update();
 }
 

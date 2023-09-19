@@ -6,15 +6,17 @@
 #include <QWheelEvent>
 #include <QWidget>
 
-#include "parser.hpp"
 #include "DrawContextMenu.hpp"
+#include "parser.hpp"
 
 class ViewerWidget : public QWidget {
     Q_OBJECT
 
-    Parser* m_parser{};
-    DrawContextMenu* m_contextMenu{};
+    Parser* m_parser {};
+    DrawContextMenu* m_contextMenu {};
 
+    bool m_isScaleSet { false };
+    bool m_isPositionSet { false };
     std::pair<int16_t, int16_t> m_min { INT16_MAX, INT16_MAX };
     std::pair<int16_t, int16_t> m_max { 0, 0 };
     double m_initScale { 1.0 };
@@ -22,7 +24,7 @@ class ViewerWidget : public QWidget {
     double m_scroll { 0.0 };
 
     bool m_isDrawing { false };
-    Rect::Material m_drawingMaterial { Rect::Material::None };
+    Rect::Material m_drawingMaterial { Rect::Material::ME };
 
     QPointF m_mouseTriggerPos {};
     QPointF m_mouseCurrentPos {};
@@ -34,6 +36,8 @@ public:
 
 private:
     void drawGrid(QPainter* t_painter);
+    void setMinMax();
+    void resetAxisPos();
 
 protected:
     void paintEvent(QPaintEvent* t_event);

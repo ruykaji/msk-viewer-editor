@@ -65,6 +65,7 @@ void MainWindow::open()
 
     m_codeEditor->readFile(fileName);
 };
+
 void MainWindow::save()
 {
     QString fileName = QFileDialog::getSaveFileName(this, tr("Open topology"), "/home", tr("Topology (*.msk *.MSK)"));

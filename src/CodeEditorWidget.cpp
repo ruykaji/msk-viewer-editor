@@ -9,7 +9,7 @@ CodeEditorWidget::CodeEditorWidget(Lexer* t_lexer, Parser* t_parser, QWidget* t_
     , QPlainTextEdit(t_parent)
 {
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
-    setMaximumWidth(300);
+    setFixedWidth(450);
 
     auto palette = QPalette();
 

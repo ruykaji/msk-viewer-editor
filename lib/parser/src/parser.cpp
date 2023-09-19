@@ -301,11 +301,11 @@ void Parser::makeASTREC()
         } else if (literalArg == "V2") {
             material = Rect::Material::V2;
         } else if (literalArg == "M4") {
-            material = Rect::Material::NW;
+            material = Rect::Material::M4;
         } else if (literalArg == "V3") {
             material = Rect::Material::V3;
         } else if (literalArg == "M5") {
-            material = Rect::Material::NW;
+            material = Rect::Material::M5;
         } else if (literalArg == "V4") {
             material = Rect::Material::V4;
         } else if (literalArg == "M6") {
