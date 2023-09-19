@@ -1,5 +1,6 @@
 #include <QApplication>
 #include <QTransform>
+#include <QMenu>
 
 #include "DrawData.hpp"
 #include "ViewerWidget.hpp"
@@ -13,6 +14,10 @@ ViewerWidget::ViewerWidget(Parser* t_parser, QWidget* t_parent)
     : m_parser(t_parser)
     , QWidget(t_parent)
 {
+    m_contextMenu = new DrawContextMenu(this);
+
+    connect(m_contextMenu, &DrawContextMenu::selectDrawingMaterial, this, &ViewerWidget::selectDrawingMaterial);
+    
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     QPalette pal;
@@ -54,7 +59,7 @@ void ViewerWidget::paintEvent(QPaintEvent* t_event)
 
     if (m_isDrawing) {
         selectPenAndBrush(m_drawingMaterial, 1.0 / m_currentScale, painter);
-        painter->drawRect(QRect(m_mouseTriggerPos / m_currentScale - m_moveAxesIn, m_mouseCurrentPos / m_currentScale - m_moveAxesIn));
+        painter->drawRect(QRectF(m_mouseTriggerPos / m_currentScale - m_moveAxesIn, m_mouseCurrentPos / m_currentScale - m_moveAxesIn));
     }
 
     painter->end();
@@ -74,46 +79,52 @@ void ViewerWidget::resizeEvent(QResizeEvent* t_event)
 
 void ViewerWidget::mousePressEvent(QMouseEvent* t_event)
 {
-    if (t_event->button() == Qt::LeftButton) {
+    switch (t_event->button())
+    {
+    case Qt::MiddleButton:{
         m_mouseTriggerPos = t_event->pos();
-
-        if (!m_isDrawing) {
-            QCursor changedCursor = cursor();
-            changedCursor.setShape(Qt::ClosedHandCursor);
-            setCursor(changedCursor);
-        }
+        setCursor(QCursor(Qt::ClosedHandCursor));
+        break;
     }
+    case Qt::LeftButton :{
+        m_isDrawing = true;
+        m_mouseTriggerPos = t_event->pos();
+        m_mouseCurrentPos = m_mouseTriggerPos;
+        break;
+    }
+    case Qt::RightButton:{
+        m_contextMenu->popup(mapToGlobal(t_event->pos()));
+        break;
+    }
+    default:
+        break;
+    }
+
+    update();
 }
 
 void ViewerWidget::mouseMoveEvent(QMouseEvent* t_event)
 {
-    if (t_event->buttons() & Qt::LeftButton) {
-
-        if (!m_isDrawing) {
-            m_moveAxesIn = m_axesPos - (m_mouseTriggerPos - t_event->pos()) / m_currentScale;
-        } else {
-            m_mouseCurrentPos = t_event->pos();
-        }
-
+    if (t_event->buttons() & Qt::MiddleButton) {
+        m_moveAxesIn = m_axesPos - (m_mouseTriggerPos - t_event->pos()) / m_currentScale;
+        update();
+    } else if (t_event->buttons() & Qt::LeftButton) {
+        m_mouseCurrentPos = t_event->pos();
         update();
     }
 }
 
 void ViewerWidget::mouseReleaseEvent(QMouseEvent* event)
 {
-    m_axesPos = m_moveAxesIn;
-
     if (!m_isDrawing) {
-        QCursor changedCursor = cursor();
-        changedCursor.setShape(Qt::ArrowCursor);
-        setCursor(changedCursor);
+        m_axesPos = m_moveAxesIn;
+        setCursor(QCursor(Qt::ArrowCursor));
     } else {
         QTransform rotate(1, 0, 0, -1, 0, 0);
 
-        auto rect = rotate.mapRect(QRect(m_mouseTriggerPos / m_currentScale - m_moveAxesIn, m_mouseCurrentPos / m_currentScale - m_moveAxesIn));
+        auto rect = rotate.mapRect(QRectF(m_mouseTriggerPos / m_currentScale - m_moveAxesIn, m_mouseCurrentPos / m_currentScale - m_moveAxesIn));
 
         m_parser->addRECNode(rect.left(), rect.top(), rect.width(), rect.height(), m_drawingMaterial);
-        m_drawingMaterial = Rect::Material::None;
         m_isDrawing = false;
 
         newRect();
@@ -127,13 +138,12 @@ void ViewerWidget::wheelEvent(QWheelEvent* t_event)
 
         if ((sigmoid > 0.5 || t_event->angleDelta().y() > 0) && (sigmoid < 0.995 || t_event->angleDelta().y() < 0)) {
             m_scroll += 0.1 * (t_event->angleDelta().y() > 0 ? 1 : -1);
+            
             auto newCurrentScale = m_initScale / (1.0 / (std::pow(2.718281282846, 1 * m_scroll)));
             auto scaleDiff = newCurrentScale / m_currentScale;
+            
             m_currentScale = newCurrentScale;
-
-            auto mousePos = t_event->position();
-            auto diff = (mousePos * scaleDiff - mousePos);
-            m_moveAxesIn = m_axesPos - QPoint(diff.x(), diff.y()) / m_currentScale;
+            m_moveAxesIn = m_axesPos - (scaleDiff -1) * t_event->position() / m_currentScale;
             m_axesPos = m_moveAxesIn;
         }
 
@@ -165,8 +175,7 @@ void ViewerWidget::setNewScaling()
     update();
 }
 
-void ViewerWidget::selectDrawingMaterial(Rect::Material& t_material)
+void ViewerWidget::selectDrawingMaterial(Rect::Material t_material)
 {
-    m_isDrawing = true;
     m_drawingMaterial = t_material;
 }
