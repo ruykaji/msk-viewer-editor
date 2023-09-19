@@ -127,7 +127,14 @@ void ViewerWidget::wheelEvent(QWheelEvent* t_event)
 
         if ((sigmoid > 0.5 || t_event->angleDelta().y() > 0) && (sigmoid < 0.995 || t_event->angleDelta().y() < 0)) {
             m_scroll += 0.1 * (t_event->angleDelta().y() > 0 ? 1 : -1);
-            m_currentScale = m_initScale / (1.0 / (std::pow(2.718281282846, 1 * m_scroll)));
+            auto newCurrentScale = m_initScale / (1.0 / (std::pow(2.718281282846, 1 * m_scroll)));
+            auto scaleDiff = newCurrentScale / m_currentScale;
+            m_currentScale = newCurrentScale;
+
+            auto mousePos = t_event->position();
+            auto diff = (mousePos * scaleDiff - mousePos);
+            m_moveAxesIn = m_axesPos - QPoint(diff.x(), diff.y()) / m_currentScale;
+            m_axesPos = m_moveAxesIn;
         }
 
         update();
