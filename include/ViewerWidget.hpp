@@ -18,8 +18,8 @@ class ViewerWidget : public QWidget {
         DRAGING,
     };
 
-    Mode m_mode  {};
-    
+    Mode m_mode {};
+
     Parser* m_parser {};
     DrawContextMenu* m_contextMenu {};
 
@@ -27,16 +27,17 @@ class ViewerWidget : public QWidget {
     bool m_isPositionSet { false };
     std::pair<int16_t, int16_t> m_min { INT16_MAX, INT16_MAX };
     std::pair<int16_t, int16_t> m_max { 0, 0 };
-    double m_initScale { 1.0 };
-    double m_currentScale { 1.0 };
+    double m_initScale { 10.0 };
+    double m_currentScale { 10.0 };
+    double m_prevCurrenScale { 10.0 };
     double m_scroll { 0.0 };
 
     Rect::Material m_drawingMaterial { Rect::Material::ME };
 
-    QPoint m_mouseTriggerPos {};
-    QPoint m_mouseCurrentPos {};
-    QPoint m_moveAxesIn {};
-    QPoint m_axesPos {};
+    QPointF m_mouseTriggerPos {};
+    QPointF m_mouseCurrentPos {};
+    QPointF m_moveAxesIn {};
+    QPointF m_axesPos {};
 
 public:
     explicit ViewerWidget(Parser* t_parser, QWidget* t_parent);

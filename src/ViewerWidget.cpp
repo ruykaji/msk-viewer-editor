@@ -28,10 +28,33 @@ ViewerWidget::ViewerWidget(Parser* t_parser, QWidget* t_parent)
 
 void ViewerWidget::drawGrid(QPainter* t_painter)
 {
-    auto widthCount = width() / 1;
-    auto heightCount = height() / 1;
+    auto widthCount = width();
+    auto heightCount = height();
 
-    for (std::size_t i = 0; i < widthCount; ++i) {
+    t_painter->setPen(QPen(QColor(25, 25, 25), 1.0 / m_currentScale));
+
+    if (m_axesPos.x() - m_moveAxesIn.x() >= 0) {
+        for (double i = 0; i < heightCount / m_currentScale + std::abs(m_axesPos.ry() - m_moveAxesIn.ry()); i += 1.0) {
+            t_painter->drawLine(QLine(-m_axesPos.rx(), i - m_axesPos.ry(), widthCount / m_currentScale - m_moveAxesIn.rx() + 1, i - m_axesPos.ry()));
+        }
+    }
+
+    if (m_axesPos.x() - m_moveAxesIn.x() < 0) {
+         for (double i = 0; i < heightCount / m_currentScale + std::abs(m_axesPos.ry() - m_moveAxesIn.ry()); i += 1.0) {
+            t_painter->drawLine(QLine(-m_moveAxesIn.rx(), i - m_moveAxesIn.ry(), widthCount / m_currentScale - m_axesPos.rx() + 1, i - m_moveAxesIn.ry()));
+        }
+    }
+
+    if (m_axesPos.y() - m_moveAxesIn.y() >= 0) {
+        for (double i = 0; i < widthCount / m_currentScale + std::abs(m_axesPos.rx() - m_moveAxesIn.rx()); i += 1.0) {
+            t_painter->drawLine(QLine(i - m_axesPos.rx(), -m_axesPos.ry(), i - m_axesPos.rx(), heightCount / m_currentScale - m_moveAxesIn.ry() + 1));
+        }
+    }
+
+    if (m_axesPos.y() - m_moveAxesIn.y() < 0) {
+        for (double i = 0; i < widthCount / m_currentScale + std::abs(m_axesPos.rx() - m_moveAxesIn.rx()); i += 1.0) {
+            t_painter->drawLine(QLine(i - m_moveAxesIn.rx(), -m_moveAxesIn.ry(), i - m_moveAxesIn.rx(), heightCount / m_currentScale - m_axesPos.ry() + 1));
+        }
     }
 }
 
@@ -59,7 +82,7 @@ void ViewerWidget::resetAxisPos()
 
         m_axesPos = QPoint(-borders.left(), height() / m_currentScale - borders.bottom());
     } else {
-        m_axesPos = QPoint(0, height());
+        m_axesPos = QPoint(0, height() / m_currentScale);
     }
 
     m_moveAxesIn = m_axesPos;
@@ -76,6 +99,8 @@ void ViewerWidget::paintEvent(QPaintEvent* t_event)
     painter->translate(m_moveAxesIn * m_currentScale);
     painter->scale(m_currentScale, m_currentScale);
 
+    drawGrid(painter);
+
     QTransform rotate(1, 0, 0, -1, 0, 0);
 
     for (auto& rect : m_parser->ast) {
@@ -89,7 +114,12 @@ void ViewerWidget::paintEvent(QPaintEvent* t_event)
 
     if (m_mode == Mode::DRAWING) {
         selectPenAndBrush(m_drawingMaterial, 1.0 / m_currentScale, painter);
-        painter->drawRect(QRect(m_mouseTriggerPos / m_currentScale - m_moveAxesIn, m_mouseCurrentPos / m_currentScale - m_moveAxesIn));
+
+        auto rect = QRectF(m_mouseTriggerPos / m_currentScale - m_moveAxesIn, m_mouseCurrentPos / m_currentScale - m_moveAxesIn).toRect();
+
+        if (rect.width() > 0 && rect.height() > 0) {
+            painter->drawRect(rect);
+        }
     }
 
     painter->end();
@@ -172,17 +202,18 @@ void ViewerWidget::mouseReleaseEvent(QMouseEvent* t_event)
         break;
     }
     case Mode::DRAWING: {
-        if (m_mouseCurrentPos != m_mouseTriggerPos) {
-            QTransform rotate(1, 0, 0, -1, 0, 0);
+        QTransform rotate(1, 0, 0, -1, 0, 0);
 
-            auto rect = rotate.mapRect(QRect(m_mouseTriggerPos / m_currentScale - m_moveAxesIn, m_mouseCurrentPos / m_currentScale - m_moveAxesIn));
+        auto rect = rotate.mapRect(QRectF(m_mouseTriggerPos / m_currentScale - m_moveAxesIn, m_mouseCurrentPos / m_currentScale - m_moveAxesIn).toRect());
 
+        if (rect.width() > 0 && rect.height() > 0) {
             m_parser->addRECNode(rect.left(), rect.top(), rect.width(), rect.height(), m_drawingMaterial);
             m_mode = Mode::DEFAULT;
 
             newRect();
-            update();
         }
+
+        update();
         break;
     }
 
@@ -194,18 +225,13 @@ void ViewerWidget::mouseReleaseEvent(QMouseEvent* t_event)
 void ViewerWidget::wheelEvent(QWheelEvent* t_event)
 {
     if (QGuiApplication::queryKeyboardModifiers().testFlag(Qt::ControlModifier)) {
-        double sigmoid = 1.0 / (1 + std::pow(2.718281282846, -1 * m_scroll));
+        m_scroll += 0.1 * (t_event->angleDelta().y() > 0 ? 1 : -1);
 
-        if ((sigmoid > 0.5 || t_event->angleDelta().y() > 0) && (sigmoid < 0.995 || t_event->angleDelta().y() < 0)) {
-            m_scroll += 0.1 * (t_event->angleDelta().y() > 0 ? 1 : -1);
+        m_prevCurrenScale = m_currentScale;
+        m_currentScale = m_initScale / (1.0 / (std::pow(2.718281282846, 1 * m_scroll)));
 
-            auto newCurrentScale = m_initScale / (1.0 / (std::pow(2.718281282846, 1 * m_scroll)));
-            auto scaleDiff = newCurrentScale / m_currentScale;
-
-            m_currentScale = newCurrentScale;
-            m_moveAxesIn = (m_axesPos - (scaleDiff - 1) * t_event->position() / m_currentScale).toPoint();
-            m_axesPos = m_moveAxesIn;
-        }
+        m_moveAxesIn = m_axesPos - (m_currentScale / m_prevCurrenScale - 1) * t_event->position() / m_currentScale;
+        m_axesPos = m_moveAxesIn;
 
         update();
     }
