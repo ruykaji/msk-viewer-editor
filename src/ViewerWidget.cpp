@@ -34,26 +34,22 @@ void ViewerWidget::drawGrid(QPainter* t_painter)
     t_painter->setPen(QPen(QColor(25, 25, 25), 1.0 / m_currentScale));
 
     if (m_axesPos.x() - m_moveAxesIn.x() >= 0) {
-        for (double i = 0; i < heightCount / m_currentScale + std::abs(m_axesPos.ry() - m_moveAxesIn.ry()); i += 1.0) {
-            t_painter->drawLine(QLine(-m_axesPos.rx(), i - m_axesPos.ry(), widthCount / m_currentScale - m_moveAxesIn.rx() + 1, i - m_axesPos.ry()));
+        for (double i = 0; i < heightCount / m_currentScale + std::abs(m_axesPos.ry() - m_moveAxesIn.ry()) + 1.0; i += 1.0) {
+            t_painter->drawLine(QLine(-m_axesPos.rx() - 1.0, i - m_moveAxesIn.ry(), widthCount / m_currentScale - m_moveAxesIn.rx() + 1.0, i - m_moveAxesIn.ry()));
         }
-    }
-
-    if (m_axesPos.x() - m_moveAxesIn.x() < 0) {
-         for (double i = 0; i < heightCount / m_currentScale + std::abs(m_axesPos.ry() - m_moveAxesIn.ry()); i += 1.0) {
-            t_painter->drawLine(QLine(-m_moveAxesIn.rx(), i - m_moveAxesIn.ry(), widthCount / m_currentScale - m_axesPos.rx() + 1, i - m_moveAxesIn.ry()));
+    } else if (m_axesPos.x() - m_moveAxesIn.x() < 0) {
+        for (double i = 0; i < heightCount / m_currentScale + std::abs(m_axesPos.ry() - m_moveAxesIn.ry()) + 1.0; i += 1.0) {
+            t_painter->drawLine(QLine(-m_moveAxesIn.rx() - 1.0, i - m_moveAxesIn.ry(), widthCount / m_currentScale - m_axesPos.rx() + 1.0, i - m_moveAxesIn.ry()));
         }
     }
 
     if (m_axesPos.y() - m_moveAxesIn.y() >= 0) {
-        for (double i = 0; i < widthCount / m_currentScale + std::abs(m_axesPos.rx() - m_moveAxesIn.rx()); i += 1.0) {
-            t_painter->drawLine(QLine(i - m_axesPos.rx(), -m_axesPos.ry(), i - m_axesPos.rx(), heightCount / m_currentScale - m_moveAxesIn.ry() + 1));
+        for (double i = 0; i < widthCount / m_currentScale + std::abs(m_axesPos.rx() - m_moveAxesIn.rx()) + 1.0; i += 1.0) {
+            t_painter->drawLine(QLine(i - m_moveAxesIn.rx(), -m_axesPos.ry() - 1.0, i - m_moveAxesIn.rx(), heightCount / m_currentScale - m_moveAxesIn.ry() + 1.0));
         }
-    }
-
-    if (m_axesPos.y() - m_moveAxesIn.y() < 0) {
-        for (double i = 0; i < widthCount / m_currentScale + std::abs(m_axesPos.rx() - m_moveAxesIn.rx()); i += 1.0) {
-            t_painter->drawLine(QLine(i - m_moveAxesIn.rx(), -m_moveAxesIn.ry(), i - m_moveAxesIn.rx(), heightCount / m_currentScale - m_axesPos.ry() + 1));
+    } else if (m_axesPos.y() - m_moveAxesIn.y() < 0) {
+        for (double i = 0; i < widthCount / m_currentScale + std::abs(m_axesPos.rx() - m_moveAxesIn.rx()) + 1.0; i += 1.0) {
+            t_painter->drawLine(QLine(i - m_moveAxesIn.rx(), -m_moveAxesIn.ry() - 1.0, i - m_moveAxesIn.rx(), heightCount / m_currentScale - m_axesPos.ry() + 1.0));
         }
     }
 }
