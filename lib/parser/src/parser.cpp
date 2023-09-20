@@ -19,7 +19,7 @@ inline bool isNumber(const std::string& t_str)
 
 Parser::Parser()
 {
-    pt = std::make_shared<Node>(NodeKind::PROGRAM, nullptr);
+    pt = std::make_shared<Node>(NodeKind::PROGRAM);
 }
 
 /*Parse tree methods*/
@@ -27,51 +27,43 @@ Parser::Parser()
 
 void Parser::makePT(const std::vector<Token>& t_tokens)
 {
-    pt = std::make_shared<Node>(NodeKind::PROGRAM, nullptr);
+    pt = std::make_shared<Node>(NodeKind::PROGRAM);
 
     auto tokensIterator = t_tokens.begin();
 
     while (tokensIterator->kind != TokenKind::END_OF_FILE) {
-        makePTStep(tokensIterator);
+        switch (tokensIterator->kind) {
+        case TokenKind::REC: {
+            auto node = std::make_shared<StatementNode>(StatementKind::REC_CALL);
+            pt->child.emplace_back(node);
+
+            makePTREC(node, tokensIterator);
+            break;
+        }
+        default: {
+            pt->child.emplace_back(std::make_shared<TerminalNode>(*tokensIterator++));
+            break;
+        }
+        }
     }
 
-    pt->child.emplace_back(std::make_shared<Node>(Node(NodeKind::END_OF_PROGRAM, pt)));
+    pt->child.emplace_back(std::make_shared<Node>(Node(NodeKind::END_OF_PROGRAM)));
 }
 
-void Parser::makePTStep(std::vector<Token>::const_iterator& t_tokensIterator)
+void Parser::makePTREC(const std::shared_ptr<Node>& t_parent, std::vector<Token>::const_iterator& t_tokensIterator)
 {
-    switch (t_tokensIterator->kind) {
-    case TokenKind::REC: {
-        auto node = std::make_shared<StatementNode>(StatementNode(StatementKind::REC_CALL, pt));
-        node->parent = pt;
+    uint8_t totalElements { 1 };
 
-        pt->child.emplace_back(node);
-        pt = node;
+    t_parent->child.emplace_back(std::make_shared<TerminalNode>(*t_tokensIterator++));
 
-        pt->child.emplace_back(std::make_shared<TerminalNode>(TerminalNode(*t_tokensIterator++, pt)));
-
-        makePTREC(t_tokensIterator);
-
-        pt = pt->parent;
-        break;
-    }
-    default: {
-        pt->child.emplace_back(std::make_shared<TerminalNode>(TerminalNode(*t_tokensIterator++, pt)));
-        break;
-    }
-    }
-}
-
-void Parser::makePTREC(std::vector<Token>::const_iterator& t_tokensIterator)
-{
-    while (t_tokensIterator->kind == TokenKind::UNDEFINED) {
-        makePTStep(t_tokensIterator);
+    while (t_tokensIterator->kind == TokenKind::UNDEFINED && t_tokensIterator->kind != TokenKind::END_OF_FILE) {
+        t_parent->child.emplace_back(std::make_shared<TerminalNode>(*t_tokensIterator++));
     }
 
     if (t_tokensIterator->kind != TokenKind::LEFT_BRACE) {
-        pt->isError = true;
-        pt->child.at(0)->isError = true;
-        pt->child.at(0)->message = "There is no declaration for REC statement!";
+        t_parent->isError = true;
+        t_parent->child.at(0)->isError = true;
+        t_parent->child.at(0)->message = "There is no declaration for REC statement!";
 
         return;
     }
@@ -79,14 +71,35 @@ void Parser::makePTREC(std::vector<Token>::const_iterator& t_tokensIterator)
     while (t_tokensIterator->kind != TokenKind::END_OF_FILE) {
         switch (t_tokensIterator->kind) {
         case TokenKind::LEFT_BRACE: {
+            ++totalElements;
             break;
         }
         case TokenKind::COMMA: {
+            ++totalElements;
+
+            if (t_parent->child.size() > 1) {
+                for (auto i = t_parent->child.rbegin(); i != t_parent->child.rend(); ++i) {
+                    auto node = std::static_pointer_cast<TerminalNode>((*i));
+
+                    if (node->kind == TokenKind::NUMBER || node->kind == TokenKind::STRING) {
+                        break;
+                    }
+
+                    if (node->kind == TokenKind::COMMA) {
+                        t_parent->isError = true;
+                        node->isError = true;
+                        node->message = "Value is needed!";
+                        break;
+                    }
+                }
+            }
             break;
         }
         case TokenKind::NUMBER: {
-            if (pt->child.size() > 0) {
-                for (auto i = pt->child.rbegin(); i != pt->child.rend(); ++i) {
+            ++totalElements;
+
+            if (t_parent->child.size() > 1) {
+                for (auto i = t_parent->child.rbegin(); i != t_parent->child.rend(); ++i) {
                     auto node = std::static_pointer_cast<TerminalNode>((*i));
 
                     if (node->kind == TokenKind::COMMA) {
@@ -94,7 +107,7 @@ void Parser::makePTREC(std::vector<Token>::const_iterator& t_tokensIterator)
                     }
 
                     if (node->kind == TokenKind::NUMBER || node->kind == TokenKind::STRING) {
-                        pt->isError = true;
+                        t_parent->isError = true;
                         node->isError = true;
                         node->message = "Separator is needed!";
                         break;
@@ -104,8 +117,10 @@ void Parser::makePTREC(std::vector<Token>::const_iterator& t_tokensIterator)
             break;
         }
         case TokenKind::STRING: {
-            if (pt->child.size() > 0 && pt->child.back()->kind == NodeKind::TERMINAL) {
-                for (auto i = pt->child.rbegin(); i != pt->child.rend(); ++i) {
+            ++totalElements;
+
+            if (t_parent->child.size() > 1) {
+                for (auto i = t_parent->child.rbegin(); i != t_parent->child.rend(); ++i) {
                     auto node = std::static_pointer_cast<TerminalNode>((*i));
 
                     if (node->kind == TokenKind::COMMA) {
@@ -113,118 +128,122 @@ void Parser::makePTREC(std::vector<Token>::const_iterator& t_tokensIterator)
                     }
 
                     if (node->kind == TokenKind::NUMBER || node->kind == TokenKind::STRING) {
-                        pt->isError = true;
+                        t_parent->isError = true;
                         node->isError = true;
                         node->message = "Separator is needed!";
                         break;
                     }
                 }
             }
-
             break;
         }
         case TokenKind::RIGHT_BRACE: {
-            makePTStep(t_tokensIterator);
+            ++totalElements;
+
+            if (!t_parent->isError && totalElements != 12) {
+                t_parent->isError = true;
+                t_parent->child.at(0)->isError = true;
+                t_parent->child.at(0)->message = "Wrong statement declaration!";
+            }
+
+            t_parent->child.emplace_back(std::make_shared<TerminalNode>(*t_tokensIterator++));
             return;
         }
         default:
             break;
         }
 
-        if (t_tokensIterator->kind != TokenKind::REC) {
-            makePTStep(t_tokensIterator);
-        } else {
+        if (t_tokensIterator->kind == TokenKind::REC) {
             break;
         }
+
+        t_parent->child.emplace_back(std::make_shared<TerminalNode>(*t_tokensIterator++));
     }
 
-    if (!pt->isError) {
-        pt->isError = true;
-        pt->child.at(0)->isError = true;
-        pt->child.at(0)->message = "Statement is not closed!";
+    if (!t_parent->isError) {
+        t_parent->isError = true;
+        t_parent->child.at(0)->isError = true;
+        t_parent->child.at(0)->message = "Statement is not closed!";
     }
 }
 
 void Parser::addRECNode(const int16_t& t_left, const int16_t& t_top, const int16_t& t_width, const int16_t& t_height, const Rect::Material& t_material)
 {
-    auto node = std::make_shared<StatementNode>(StatementKind::REC_CALL, pt);
+    auto node = std::make_shared<StatementNode>(StatementKind::REC_CALL);
 
-    node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::REC, "REC"), node));
-    node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::LEFT_BRACE, "("), node));
-    node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::NUMBER, std::to_string(t_left)), node));
-    node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::COMMA, ","), node));
-    node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::NUMBER, std::to_string(t_top)), node));
-    node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::COMMA, ","), node));
-    node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::NUMBER, std::to_string(t_width)), node));
-    node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::COMMA, ","), node));
-    node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::NUMBER, std::to_string(t_height)), node));
-    node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::COMMA, ","), node));
+    node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::REC, "REC")));
+    node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::LEFT_BRACE, "(")));
+    node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::NUMBER, std::to_string(t_left))));
+    node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::COMMA, ",")));
+    node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::NUMBER, std::to_string(t_top))));
+    node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::COMMA, ",")));
+    node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::NUMBER, std::to_string(t_width))));
+    node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::COMMA, ",")));
+    node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::NUMBER, std::to_string(t_height))));
+    node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::COMMA, ",")));
 
     switch (t_material) {
     case Rect::Material::NW:
-        node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::STRING, "NW"), node));
+        node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::STRING, "NW")));
         break;
     case Rect::Material::DN:
-        node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::STRING, "DN"), node));
+        node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::STRING, "DN")));
         break;
     case Rect::Material::DP:
-        node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::STRING, "DP"), node));
+        node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::STRING, "DP")));
         break;
     case Rect::Material::PO:
-        node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::STRING, "PO"), node));
+        node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::STRING, "PO")));
         break;
     case Rect::Material::PO2:
-        node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::STRING, "PO2"), node));
+        node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::STRING, "PO2")));
         break;
     case Rect::Material::ME:
-        node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::STRING, "ME"), node));
+        node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::STRING, "ME")));
         break;
     case Rect::Material::CO:
-        node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::STRING, "CO"), node));
+        node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::STRING, "CO")));
         break;
     case Rect::Material::M2:
-        node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::STRING, "M2"), node));
+        node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::STRING, "M2")));
         break;
     case Rect::Material::VI:
-        node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::STRING, "VI"), node));
+        node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::STRING, "VI")));
         break;
     case Rect::Material::M3:
-        node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::STRING, "M3"), node));
+        node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::STRING, "M3")));
         break;
     case Rect::Material::V2:
-        node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::STRING, "V2"), node));
+        node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::STRING, "V2")));
         break;
     case Rect::Material::M4:
-        node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::STRING, "M4"), node));
+        node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::STRING, "M4")));
         break;
     case Rect::Material::V3:
-        node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::STRING, "V3"), node));
+        node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::STRING, "V3")));
         break;
     case Rect::Material::M5:
-        node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::STRING, "M5"), node));
+        node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::STRING, "M5")));
         break;
     case Rect::Material::V4:
-        node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::STRING, "V4"), node));
+        node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::STRING, "V4")));
         break;
     case Rect::Material::M6:
-        node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::STRING, "M6"), node));
+        node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::STRING, "M6")));
         break;
     case Rect::Material::V5:
-        node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::STRING, "V5"), node));
+        node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::STRING, "V5")));
         break;
     default:
         break;
     }
 
-    node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::RIGHT_BRACE, ")"), node));
-    node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::UNDEFINED, "\n"), node));
+    node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::RIGHT_BRACE, ")")));
+    node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::UNDEFINED, "\n")));
 
     pt->child.emplace_back(node);
-    pt = node;
 
-    makeASTREC();
-
-    pt = node->parent;
+    makeASTREC(node);
 }
 
 /*Abstract syntax tree methods*/
@@ -238,22 +257,19 @@ void Parser::makeAST()
         for (auto& child : pt->child) {
             if (child->kind == NodeKind::STATEMENT && !child->isError) {
                 auto node = std::static_pointer_cast<StatementNode>(child);
-                pt = node;
 
-                makeASTREC();
-
-                pt = node->parent;
+                makeASTREC(node);
             }
         }
     }
 }
 
-void Parser::makeASTREC()
+void Parser::makeASTREC(const std::shared_ptr<Node>& t_parent)
 {
     std::vector<int16_t> numericArgs {};
     std::string literalArg {};
 
-    for (auto& child : pt->child) {
+    for (auto& child : t_parent->child) {
         if (child->kind == NodeKind::TERMINAL) {
             auto node = std::static_pointer_cast<TerminalNode>(child);
 
@@ -314,7 +330,7 @@ void Parser::makeASTREC()
         }
 
         auto rect = std::make_shared<Rect>(numericArgs[0], numericArgs[1], numericArgs[2], numericArgs[3], material);
-        rect->source = pt;
+        rect->source = t_parent;
 
         ast.insert(rect);
     }

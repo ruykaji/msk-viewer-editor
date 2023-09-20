@@ -47,6 +47,11 @@ struct Rect {
         , width(width)
         , height(t_height)
         , material(t_material) {};
+
+    friend bool operator<(const Rect& t_left, const Rect& t_right)
+    {
+        return static_cast<uint16_t>(t_left.material) < static_cast<uint16_t>(t_right.material);
+    };
 };
 
 #endif

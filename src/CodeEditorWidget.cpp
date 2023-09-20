@@ -38,7 +38,7 @@ void CodeEditorWidget::deepMakeText(QTextCursor& t_textCursor, QTextCharFormat& 
                     t_formater.setToolTip(QString(""));
                 }
 
-                if (node->parent->kind == NodeKind::STATEMENT) {
+                if (t_iterator->kind == NodeKind::STATEMENT) {
                     switch (node->kind) {
                     case TokenKind::REC:
                         t_formater.setForeground(QBrush(QColor(237, 172, 50)));

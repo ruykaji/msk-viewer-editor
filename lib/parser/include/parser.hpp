@@ -8,12 +8,10 @@
 #include "abstract_syntax_tree.hpp"
 #include "parse_tree.hpp"
 
-static auto __compare = [](auto& el1, auto el2) { return static_cast<uint16_t>(el1->material) <= static_cast<uint16_t>(el2->material); };
-
 class Parser {
 public:
     std::shared_ptr<Node> pt {};
-    std::set<std::shared_ptr<Rect>, decltype(__compare)> ast {};
+    std::set<std::shared_ptr<Rect>> ast {};
 
     Parser();
     ~Parser() = default;
@@ -29,14 +27,12 @@ private:
     /*Parse tree methods*/
     /*==========================================================================*/
 
-    void makePTStep(std::vector<Token>::const_iterator& t_tokensIterator);
-    void makePTREC(std::vector<Token>::const_iterator& t_tokensIterator);
+    void makePTREC(const std::shared_ptr<Node>& t_parent, std::vector<Token>::const_iterator& t_tokensIterator);
 
     /*Abstract syntax tree methods*/
     /*==========================================================================*/
 
-    void makeASTStep();
-    void makeASTREC();
+    void makeASTREC(const std::shared_ptr<Node>& t_parent);
 };
 
 #endif
