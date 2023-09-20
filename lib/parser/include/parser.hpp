@@ -2,15 +2,18 @@
 #define __PARSER_H__
 
 #include <memory>
+#include <set>
 #include <string>
 
 #include "abstract_syntax_tree.hpp"
 #include "parse_tree.hpp"
 
+static auto __compare = [](auto& el1, auto el2) { return static_cast<uint16_t>(el1->material) <= static_cast<uint16_t>(el2->material); };
+
 class Parser {
 public:
     std::shared_ptr<Node> pt {};
-    std::vector<std::shared_ptr<Rect>> ast {};
+    std::set<std::shared_ptr<Rect>, decltype(__compare)> ast {};
 
     Parser();
     ~Parser() = default;

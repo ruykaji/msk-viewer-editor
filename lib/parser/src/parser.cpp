@@ -220,8 +220,11 @@ void Parser::addRECNode(const int16_t& t_left, const int16_t& t_top, const int16
     node->child.emplace_back(std::make_shared<TerminalNode>(Token(TokenKind::UNDEFINED, "\n"), node));
 
     pt->child.emplace_back(node);
+    pt = node;
 
-    makeAST();
+    makeASTREC();
+
+    pt = node->parent;
 }
 
 /*Abstract syntax tree methods*/
@@ -243,10 +246,6 @@ void Parser::makeAST()
             }
         }
     }
-
-    std::sort(ast.begin(), ast.end(), [](auto& el1, auto el2) {
-        return static_cast<uint16_t>(el1->material) < static_cast<uint16_t>(el2->material);
-    });
 }
 
 void Parser::makeASTREC()
@@ -317,6 +316,6 @@ void Parser::makeASTREC()
         auto rect = std::make_shared<Rect>(numericArgs[0], numericArgs[1], numericArgs[2], numericArgs[3], material);
         rect->source = pt;
 
-        ast.emplace_back(rect);
+        ast.insert(rect);
     }
 }

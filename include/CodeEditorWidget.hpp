@@ -12,6 +12,8 @@ class CodeEditorWidget : public QPlainTextEdit {
     Lexer* m_lexer {};
     Parser* m_parser {};
 
+    uint16_t m_line {};
+
 public:
     explicit CodeEditorWidget(Lexer* t_lexer, Parser* t_parser, QWidget* t_parent = nullptr);
 

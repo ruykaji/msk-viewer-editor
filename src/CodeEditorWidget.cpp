@@ -38,17 +38,21 @@ void CodeEditorWidget::deepMakeText(QTextCursor& t_textCursor, QTextCharFormat& 
                     t_formater.setToolTip(QString(""));
                 }
 
-                switch (node->kind) {
-                case TokenKind::REC:
-                    t_formater.setForeground(QBrush(QColor(237, 172, 50)));
-                    break;
-                case TokenKind::LEFT_BRACE:
-                case TokenKind::RIGHT_BRACE:
-                    t_formater.setForeground(QBrush(QColor(50, 144, 237)));
-                    break;
-                default:
+                if (node->parent->kind == NodeKind::STATEMENT) {
+                    switch (node->kind) {
+                    case TokenKind::REC:
+                        t_formater.setForeground(QBrush(QColor(237, 172, 50)));
+                        break;
+                    case TokenKind::LEFT_BRACE:
+                    case TokenKind::RIGHT_BRACE:
+                        t_formater.setForeground(QBrush(QColor(50, 144, 237)));
+                        break;
+                    default:
+                        t_formater.setForeground(QBrush(Qt::white));
+                        break;
+                    }
+                } else {
                     t_formater.setForeground(QBrush(Qt::white));
-                    break;
                 }
 
                 t_textCursor.insertText(QString::fromStdString(node->literal), t_formater);
@@ -123,9 +127,9 @@ void CodeEditorWidget::writeText()
 
     formater.setFontPointSize(12);
 
-    uint16_t line {};
+    m_line = 0;
 
-    deepMakeText(__textCursor, formater, line, m_parser->pt);
+    deepMakeText(__textCursor, formater, m_line, m_parser->pt);
 
     __textCursor.setPosition(cursorPosition > __textCursor.position() ? __textCursor.position() : cursorPosition);
     setTextCursor(__textCursor);
@@ -139,16 +143,12 @@ void CodeEditorWidget::newRect()
     auto __textCursor = textCursor();
 
     __document->blockSignals(true);
-    __document->clear();
-    __textCursor.setPosition(0);
 
     auto formater = QTextCharFormat();
 
     formater.setFontPointSize(12);
 
-    uint16_t line {};
-
-    deepMakeText(__textCursor, formater, line, m_parser->pt);
+    deepMakeText(__textCursor, formater, m_line, *m_parser->pt->child.rbegin());
 
     __document->blockSignals(false);
 };
