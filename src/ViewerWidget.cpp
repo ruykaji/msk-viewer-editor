@@ -86,6 +86,49 @@ void ViewerWidget::resetAxisPos()
     m_moveAxesIn = m_axesPos;
 }
 
+void ViewerWidget::drawCustomRect(QPainter* t_painter)
+{
+    selectPenAndBrush(m_drawingMaterial, 1.0 / m_currentScale, t_painter, 255, false);
+    t_painter->setBrush(QBrush(QColor(Qt::transparent)));
+
+    auto rect = QRectF(m_mouseTriggerPos / m_currentScale - m_moveAxesIn, m_mouseCurrentPos / m_currentScale - m_moveAxesIn).toRect();
+
+    if (rect.width() != 0 && rect.height() != 0) {
+        t_painter->drawRect(rect);
+
+        t_painter->setPen(QPen(QColor(Qt::white), 1.0 / m_currentScale));
+
+        auto textWidth = QString::number(abs(rect.height())) + "-LW";
+        auto textHeight = QString::number(abs(rect.height())) + "-LH";
+
+        if (rect.width() > 0 && rect.height() > 0) {
+            t_painter->drawLine(QLineF(rect.topLeft() + QPointF(0, -1), QPointF(rect.right() + 1, rect.top() - 1)).toLine());
+            t_painter->drawLine(QLineF(rect.topLeft() + QPointF(-1, 0), QPointF(rect.left() - 1, rect.bottom() + 1)).toLine());
+
+            t_painter->drawText(((rect.topLeft() + QPointF(-textWidth.length(), -2)) + QPointF(rect.right() + 1, rect.top() - 1)) / 2.0, textWidth);
+            t_painter->drawText(((rect.topLeft() + QPointF(-3 - textHeight.length(), 0)) + QPointF(rect.left() - 1, rect.bottom() + 1)) / 2.0, textHeight);
+        } else if (rect.width() < 0 && rect.height() > 0) {
+            t_painter->drawLine(QLineF(rect.topLeft() + QPointF(0, -1), QPointF(rect.right() + 1, rect.top() - 1)).toLine());
+            t_painter->drawLine(QLineF(rect.topLeft() + QPointF(1, 0), QPointF(rect.left() + 1, rect.bottom() + 1)).toLine());
+
+            t_painter->drawText(((rect.topLeft() + QPointF(-textWidth.length(), -2)) + QPointF(rect.right() + 1, rect.top() - 1)) / 2.0, textWidth);
+            t_painter->drawText(((rect.topLeft() + QPointF(2, 0)) + QPointF(rect.left() + 1, rect.bottom() + 1)) / 2.0, textHeight);
+        } else if (rect.width() > 0 && rect.height() < 0) {
+            t_painter->drawLine(QLineF(rect.topLeft() + QPointF(0, 1), QPointF(rect.right() + 1, rect.top() + 1)).toLine());
+            t_painter->drawLine(QLineF(rect.topLeft() + QPointF(-1, 0), QPointF(rect.left() - 1, rect.bottom() + 1)).toLine());
+
+            t_painter->drawText(((rect.topLeft() + QPointF(-textWidth.length(), 4)) + QPointF(rect.right() + 1, rect.top() + 1)) / 2.0, textWidth);
+            t_painter->drawText(((rect.topLeft() + QPointF(-3 - textHeight.length(), 0)) + QPointF(rect.left() - 1, rect.bottom() + 1)) / 2.0, textHeight);
+        } else if (rect.width() < 0 && rect.height() < 0) {
+            t_painter->drawLine(QLineF(rect.topLeft() + QPointF(0, 1), QPointF(rect.right() + 1, rect.top() + 1)).toLine());
+            t_painter->drawLine(QLineF(rect.topLeft() + QPointF(1, 0), QPointF(rect.left() + 1, rect.bottom() + 1)).toLine());
+
+            t_painter->drawText(((rect.topLeft() + QPointF(-textWidth.length(), 4)) + QPointF(rect.right() + 1, rect.top() + 1)) / 2.0, textWidth);
+            t_painter->drawText(((rect.topLeft() + QPointF(2, 0)) + QPointF(rect.left() + 1, rect.bottom() + 1)) / 2.0, textHeight);
+        }
+    }
+}
+
 void ViewerWidget::paintEvent(QPaintEvent* t_event)
 {
     Q_UNUSED(t_event);
@@ -102,8 +145,11 @@ void ViewerWidget::paintEvent(QPaintEvent* t_event)
 
     QTransform rotate(1, 0, 0, -1, 0, 0);
 
+    bool isPenOpacity = m_mode == Mode::DRAWING;
+    uint8_t opacity = isPenOpacity ? 25 : 145;
+
     for (auto& rect : m_parser->ast) {
-        selectPenAndBrush(rect->material, 1.0 / m_currentScale, painter);
+        selectPenAndBrush(rect->material, 1.0 / m_currentScale, painter, opacity, isPenOpacity);
 
         QRect qRect(rect->left, rect->top, rect->width, rect->height);
         qRect = rotate.mapRect(qRect);
@@ -112,45 +158,7 @@ void ViewerWidget::paintEvent(QPaintEvent* t_event)
     }
 
     if (m_mode == Mode::DRAWING) {
-        selectPenAndBrush(m_drawingMaterial, 1.0 / m_currentScale, painter);
-        painter->setBrush(QBrush(QColor(Qt::transparent)));
-
-        auto rect = QRectF(m_mouseTriggerPos / m_currentScale - m_moveAxesIn, m_mouseCurrentPos / m_currentScale - m_moveAxesIn).toRect();
-
-        if (rect.width() != 0 && rect.height() != 0) {
-            painter->drawRect(rect);
-
-            painter->setPen(QPen(QColor(Qt::white), 1.0 / m_currentScale));
-
-            auto textWidth = QString::number(abs(rect.height())) + "-LW";
-            auto textHeight = QString::number(abs(rect.height())) + "-LH";
-
-            if (rect.width() > 0 && rect.height() > 0) {
-                painter->drawLine(QLineF(rect.topLeft() + QPointF(0, -1), QPointF(rect.right() + 1, rect.top() - 1)).toLine());
-                painter->drawLine(QLineF(rect.topLeft() + QPointF(-1, 0), QPointF(rect.left() - 1, rect.bottom() + 1)).toLine());
-
-                painter->drawText(((rect.topLeft() + QPointF(-textWidth.length(), -2)) + QPointF(rect.right() + 1, rect.top() - 1)) / 2.0, textWidth);
-                painter->drawText(((rect.topLeft() + QPointF(-3 - textHeight.length(), 0)) + QPointF(rect.left() - 1, rect.bottom() + 1)) / 2.0, textHeight);
-            } else if (rect.width() < 0 && rect.height() > 0) {
-                painter->drawLine(QLineF(rect.topLeft() + QPointF(0, -1), QPointF(rect.right() + 1, rect.top() - 1)).toLine());
-                painter->drawLine(QLineF(rect.topLeft() + QPointF(1, 0), QPointF(rect.left() + 1, rect.bottom() + 1)).toLine());
-
-                painter->drawText(((rect.topLeft() + QPointF(-textWidth.length(), -2)) + QPointF(rect.right() + 1, rect.top() - 1)) / 2.0, textWidth);
-                painter->drawText(((rect.topLeft() + QPointF(2, 0)) + QPointF(rect.left() + 1, rect.bottom() + 1)) / 2.0, textHeight);
-            } else if (rect.width() > 0 && rect.height() < 0) {
-                painter->drawLine(QLineF(rect.topLeft() + QPointF(0, 1), QPointF(rect.right() + 1, rect.top() + 1)).toLine());
-                painter->drawLine(QLineF(rect.topLeft() + QPointF(-1, 0), QPointF(rect.left() - 1, rect.bottom() + 1)).toLine());
-
-                painter->drawText(((rect.topLeft() + QPointF(-textWidth.length(), 4)) + QPointF(rect.right() + 1, rect.top() + 1)) / 2.0, textWidth);
-                painter->drawText(((rect.topLeft() + QPointF(-3 - textHeight.length(), 0)) + QPointF(rect.left() - 1, rect.bottom() + 1)) / 2.0, textHeight);
-            } else if (rect.width() < 0 && rect.height() < 0) {
-                painter->drawLine(QLineF(rect.topLeft() + QPointF(0, 1), QPointF(rect.right() + 1, rect.top() + 1)).toLine());
-                painter->drawLine(QLineF(rect.topLeft() + QPointF(1, 0), QPointF(rect.left() + 1, rect.bottom() + 1)).toLine());
-
-                painter->drawText(((rect.topLeft() + QPointF(-textWidth.length(), 4)) + QPointF(rect.right() + 1, rect.top() + 1)) / 2.0, textWidth);
-                painter->drawText(((rect.topLeft() + QPointF(2, 0)) + QPointF(rect.left() + 1, rect.bottom() + 1)) / 2.0, textHeight);
-            }
-        }
+        drawCustomRect(painter);
     }
 
     painter->end();
@@ -239,10 +247,11 @@ void ViewerWidget::mouseReleaseEvent(QMouseEvent* t_event)
 
         if (rect.width() > 0 && rect.height() > 0) {
             m_parser->addRECNode(rect.left(), rect.top(), rect.width(), rect.height(), m_drawingMaterial);
-            m_mode = Mode::DEFAULT;
 
             newRect();
         }
+
+        m_mode = Mode::DEFAULT;
 
         update();
         break;

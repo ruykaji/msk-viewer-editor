@@ -46,6 +46,7 @@ private:
     void drawGrid(QPainter* t_painter);
     void setMinMax();
     void resetAxisPos();
+    void drawCustomRect(QPainter* t_painter);
 
 protected:
     void paintEvent(QPaintEvent* t_event);
