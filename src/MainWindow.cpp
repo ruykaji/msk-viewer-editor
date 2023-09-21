@@ -41,6 +41,7 @@ void MainWindow::createActions()
     newAct->setShortcuts(QKeySequence::New);
     newAct->setStatusTip("Create a new file");
     connect(newAct, &QAction::triggered, m_codeEditor, &CodeEditorWidget::clear);
+    connect(newAct, &QAction::triggered, m_viewerWidget, &ViewerWidget::clear);
 
     openAct = new QAction("&Open", this);
     openAct->setShortcuts(QKeySequence::Open);

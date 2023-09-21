@@ -22,6 +22,7 @@ public:
     void makePT(const std::vector<Token>& t_tokens);
     void makeAST();
     void addRECNode(const int16_t& t_left, const int16_t& t_top, const int16_t& t_width, const int16_t& t_height, const Rect::Material& t_material);
+    void clear();
 
 private:
     /*Parse tree methods*/

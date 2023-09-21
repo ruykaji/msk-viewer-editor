@@ -345,3 +345,11 @@ void Parser::makeASTREC(const std::shared_ptr<Node>& t_parent)
         }
     }
 }
+
+void Parser::clear()
+{
+    pt.reset();
+    ast.clear();
+
+    pt = pt = std::make_shared<Node>(NodeKind::PROGRAM);
+}

@@ -28,17 +28,17 @@ void CodeEditorWidget::deepMakeText(QTextCursor& t_textCursor, QTextCharFormat& 
             if (child->kind == NodeKind::TERMINAL) {
                 auto node = std::static_pointer_cast<TerminalNode>(child);
 
-                if (child->isError) {
-                    t_formater.setUnderlineStyle(QTextCharFormat::WaveUnderline);
-                    t_formater.setUnderlineColor(Qt::red);
-                    t_formater.setToolTip(QString::fromStdString(child->message));
-                } else {
-                    t_formater.setUnderlineStyle(QTextCharFormat::NoUnderline);
-                    t_formater.setUnderlineColor(Qt::transparent);
-                    t_formater.setToolTip(QString(""));
-                }
-
                 if (t_iterator->kind == NodeKind::STATEMENT) {
+                    if (child->isError) {
+                        t_formater.setUnderlineStyle(QTextCharFormat::WaveUnderline);
+                        t_formater.setUnderlineColor(Qt::red);
+                        t_formater.setToolTip(QString::fromStdString(child->message));
+                    } else {
+                        t_formater.setUnderlineStyle(QTextCharFormat::NoUnderline);
+                        t_formater.setUnderlineColor(Qt::transparent);
+                        t_formater.setToolTip(QString(""));
+                    }
+
                     switch (node->kind) {
                     case TokenKind::REC:
                         t_formater.setForeground(QBrush(QColor(237, 172, 50)));
@@ -145,6 +145,8 @@ void CodeEditorWidget::writeText()
         setTextCursor(__textCursor);
 
         __document->blockSignals(false);
+    } else {
+        m_parser->clear();
     }
 }
 

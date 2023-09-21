@@ -58,6 +58,7 @@ protected:
 public slots:
     void setNewScaling();
     void selectDrawingMaterial(Rect::Material t_material);
+    void clear();
 
 signals:
     void newRect();

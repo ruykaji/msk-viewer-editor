@@ -34,21 +34,21 @@ void ViewerWidget::drawGrid(QPainter* t_painter)
     t_painter->setPen(QPen(QColor(25, 25, 25), 1.0 / m_currentScale));
 
     if (m_axesPos.x() - m_moveAxesIn.x() >= 0) {
-        for (double i = 0; i < heightCount / m_currentScale + std::abs(m_axesPos.ry() - m_moveAxesIn.ry()) + 1.0; i += 1.0) {
+        for (std::size_t i = 0; i < heightCount / m_currentScale + std::abs(m_axesPos.ry() - m_moveAxesIn.ry()) + 1.0; i += 1) {
             t_painter->drawLine(QLine(-m_axesPos.rx() - 1.0, i - m_moveAxesIn.ry(), widthCount / m_currentScale - m_moveAxesIn.rx() + 1.0, i - m_moveAxesIn.ry()));
         }
     } else if (m_axesPos.x() - m_moveAxesIn.x() < 0) {
-        for (double i = 0; i < heightCount / m_currentScale + std::abs(m_axesPos.ry() - m_moveAxesIn.ry()) + 1.0; i += 1.0) {
+        for (std::size_t i = 0; i < heightCount / m_currentScale + std::abs(m_axesPos.ry() - m_moveAxesIn.ry()) + 1.0; i += 1) {
             t_painter->drawLine(QLine(-m_moveAxesIn.rx() - 1.0, i - m_moveAxesIn.ry(), widthCount / m_currentScale - m_axesPos.rx() + 1.0, i - m_moveAxesIn.ry()));
         }
     }
 
     if (m_axesPos.y() - m_moveAxesIn.y() >= 0) {
-        for (double i = 0; i < widthCount / m_currentScale + std::abs(m_axesPos.rx() - m_moveAxesIn.rx()) + 1.0; i += 1.0) {
+        for (std::size_t i = 0; i < widthCount / m_currentScale + std::abs(m_axesPos.rx() - m_moveAxesIn.rx()) + 1.0; i += 1) {
             t_painter->drawLine(QLine(i - m_moveAxesIn.rx(), -m_axesPos.ry() - 1.0, i - m_moveAxesIn.rx(), heightCount / m_currentScale - m_moveAxesIn.ry() + 1.0));
         }
     } else if (m_axesPos.y() - m_moveAxesIn.y() < 0) {
-        for (double i = 0; i < widthCount / m_currentScale + std::abs(m_axesPos.rx() - m_moveAxesIn.rx()) + 1.0; i += 1.0) {
+        for (std::size_t i = 0; i < widthCount / m_currentScale + std::abs(m_axesPos.rx() - m_moveAxesIn.rx()) + 1.0; i += 1) {
             t_painter->drawLine(QLine(i - m_moveAxesIn.rx(), -m_moveAxesIn.ry() - 1.0, i - m_moveAxesIn.rx(), heightCount / m_currentScale - m_axesPos.ry() + 1.0));
         }
     }
@@ -56,22 +56,24 @@ void ViewerWidget::drawGrid(QPainter* t_painter)
 
 void ViewerWidget::setMinMax()
 {
-    m_min = { INT16_MAX, INT16_MAX };
-    m_max = { 0, 0 };
-    m_initScale = 1.0;
-    m_currentScale = 1.0;
+    if (!m_parser->ast.empty()) {
+        m_min = { INT16_MAX, INT16_MAX };
+        m_max = { 0, 0 };
+        m_initScale = 1.0;
+        m_currentScale = 1.0;
 
-    for (auto& rect : m_parser->ast) {
-        m_min.first = std::min(m_min.first, rect->left);
-        m_min.second = std::min(m_min.second, rect->top);
-        m_max.first = std::max(m_max.first, static_cast<int16_t>(rect->left + rect->width));
-        m_max.second = std::max(m_max.second, static_cast<int16_t>(rect->top + rect->height));
+        for (auto& rect : m_parser->ast) {
+            m_min.first = std::min(m_min.first, rect->left);
+            m_min.second = std::min(m_min.second, rect->top);
+            m_max.first = std::max(m_max.first, static_cast<int16_t>(rect->left + rect->width));
+            m_max.second = std::max(m_max.second, static_cast<int16_t>(rect->top + rect->height));
+        }
     }
 }
 
 void ViewerWidget::resetAxisPos()
 {
-    if (m_isScaleSet) {
+    if (m_isScaleSet && !m_parser->ast.empty()) {
         QTransform rotate(1, 0, 0, -1, 0, 0);
 
         auto borders = rotate.mapRect(QRect(m_min.first, m_min.second, m_max.first - m_min.first, m_max.second - m_min.second));
@@ -94,6 +96,7 @@ void ViewerWidget::paintEvent(QPaintEvent* t_event)
 
     painter->translate(m_moveAxesIn * m_currentScale);
     painter->scale(m_currentScale, m_currentScale);
+    painter->setFont(QFont("Times", 1));
 
     drawGrid(painter);
 
@@ -110,11 +113,43 @@ void ViewerWidget::paintEvent(QPaintEvent* t_event)
 
     if (m_mode == Mode::DRAWING) {
         selectPenAndBrush(m_drawingMaterial, 1.0 / m_currentScale, painter);
+        painter->setBrush(QBrush(QColor(Qt::transparent)));
 
         auto rect = QRectF(m_mouseTriggerPos / m_currentScale - m_moveAxesIn, m_mouseCurrentPos / m_currentScale - m_moveAxesIn).toRect();
 
-        if (rect.width() > 0 && rect.height() > 0) {
+        if (rect.width() != 0 && rect.height() != 0) {
             painter->drawRect(rect);
+
+            painter->setPen(QPen(QColor(Qt::white), 1.0 / m_currentScale));
+
+            auto textWidth = QString::number(abs(rect.height())) + "-LW";
+            auto textHeight = QString::number(abs(rect.height())) + "-LH";
+
+            if (rect.width() > 0 && rect.height() > 0) {
+                painter->drawLine(QLineF(rect.topLeft() + QPointF(0, -1), QPointF(rect.right() + 1, rect.top() - 1)).toLine());
+                painter->drawLine(QLineF(rect.topLeft() + QPointF(-1, 0), QPointF(rect.left() - 1, rect.bottom() + 1)).toLine());
+
+                painter->drawText(((rect.topLeft() + QPointF(-textWidth.length(), -2)) + QPointF(rect.right() + 1, rect.top() - 1)) / 2.0, textWidth);
+                painter->drawText(((rect.topLeft() + QPointF(-3 - textHeight.length(), 0)) + QPointF(rect.left() - 1, rect.bottom() + 1)) / 2.0, textHeight);
+            } else if (rect.width() < 0 && rect.height() > 0) {
+                painter->drawLine(QLineF(rect.topLeft() + QPointF(0, -1), QPointF(rect.right() + 1, rect.top() - 1)).toLine());
+                painter->drawLine(QLineF(rect.topLeft() + QPointF(1, 0), QPointF(rect.left() + 1, rect.bottom() + 1)).toLine());
+
+                painter->drawText(((rect.topLeft() + QPointF(-textWidth.length(), -2)) + QPointF(rect.right() + 1, rect.top() - 1)) / 2.0, textWidth);
+                painter->drawText(((rect.topLeft() + QPointF(2, 0)) + QPointF(rect.left() + 1, rect.bottom() + 1)) / 2.0, textHeight);
+            } else if (rect.width() > 0 && rect.height() < 0) {
+                painter->drawLine(QLineF(rect.topLeft() + QPointF(0, 1), QPointF(rect.right() + 1, rect.top() + 1)).toLine());
+                painter->drawLine(QLineF(rect.topLeft() + QPointF(-1, 0), QPointF(rect.left() - 1, rect.bottom() + 1)).toLine());
+
+                painter->drawText(((rect.topLeft() + QPointF(-textWidth.length(), 4)) + QPointF(rect.right() + 1, rect.top() + 1)) / 2.0, textWidth);
+                painter->drawText(((rect.topLeft() + QPointF(-3 - textHeight.length(), 0)) + QPointF(rect.left() - 1, rect.bottom() + 1)) / 2.0, textHeight);
+            } else if (rect.width() < 0 && rect.height() < 0) {
+                painter->drawLine(QLineF(rect.topLeft() + QPointF(0, 1), QPointF(rect.right() + 1, rect.top() + 1)).toLine());
+                painter->drawLine(QLineF(rect.topLeft() + QPointF(1, 0), QPointF(rect.left() + 1, rect.bottom() + 1)).toLine());
+
+                painter->drawText(((rect.topLeft() + QPointF(-textWidth.length(), 4)) + QPointF(rect.right() + 1, rect.top() + 1)) / 2.0, textWidth);
+                painter->drawText(((rect.topLeft() + QPointF(2, 0)) + QPointF(rect.left() + 1, rect.bottom() + 1)) / 2.0, textHeight);
+            }
         }
     }
 
@@ -220,7 +255,7 @@ void ViewerWidget::mouseReleaseEvent(QMouseEvent* t_event)
 
 void ViewerWidget::wheelEvent(QWheelEvent* t_event)
 {
-    if (QGuiApplication::queryKeyboardModifiers().testFlag(Qt::ControlModifier)) {
+    if (m_mode == Mode::DEFAULT && QGuiApplication::queryKeyboardModifiers().testFlag(Qt::ControlModifier)) {
         m_scroll += 0.1 * (t_event->angleDelta().y() > 0 ? 1 : -1);
 
         m_prevCurrenScale = m_currentScale;
@@ -235,6 +270,9 @@ void ViewerWidget::wheelEvent(QWheelEvent* t_event)
 
 void ViewerWidget::setNewScaling()
 {
+    m_isPositionSet = true;
+    m_isScaleSet = true;
+
     setMinMax();
     resizeEvent(nullptr);
     resetAxisPos();
@@ -244,4 +282,21 @@ void ViewerWidget::setNewScaling()
 void ViewerWidget::selectDrawingMaterial(Rect::Material t_material)
 {
     m_drawingMaterial = t_material;
+}
+
+void ViewerWidget::clear()
+{
+    m_isScaleSet = false;
+    m_isPositionSet = false;
+    m_min = { INT16_MAX, INT16_MAX };
+    m_max = { 0, 0 };
+    m_initScale = 10.0;
+    m_currentScale = 10.0;
+    m_prevCurrenScale = 10.0;
+    m_scroll = 0.0;
+    m_mode = Mode::DEFAULT;
+    m_mouseTriggerPos = { 0, 0 };
+    m_mouseCurrentPos = { 0, 0 };
+    m_moveAxesIn = { 0, 0 };
+    m_axesPos = { 0, 0 };
 }
