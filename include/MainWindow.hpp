@@ -16,6 +16,7 @@ class MainWindow : public QMainWindow {
     Parser* m_parser {};
 
     QMenu* fileMenu;
+    QAction* newAct;
     QAction* openAct;
     QAction* saveAct;
     QAction* exitAct;
@@ -33,7 +34,6 @@ private:
 private slots:
     void open();
     void save();
-    void exit();
 };
 
 #endif

@@ -24,38 +24,44 @@ MainWindow::MainWindow(QWidget* t_parent, Qt::WindowFlags t_flags)
 
     splitter->addWidget(m_codeEditor);
     splitter->addWidget(m_viewerWidget);
-    splitter->setSizes(QList<int>() << 200 << 1080);
+    splitter->setSizes(QList<int>() << 300 << 980);
 
     setCentralWidget(splitter);
     createActions();
     createMenus();
 
-    setWindowTitle(tr("MSK Viewer and Editor"));
+    setWindowTitle("MSK Viewer and Editor");
     setMinimumSize(480, 480);
     resize(1280, 720);
 }
 
 void MainWindow::createActions()
 {
-    openAct = new QAction(tr("&Open"), this);
+    newAct = new QAction("&New", this);
+    newAct->setShortcuts(QKeySequence::New);
+    newAct->setStatusTip("Create a new file");
+    connect(newAct, &QAction::triggered, m_codeEditor, &CodeEditorWidget::clear);
+
+    openAct = new QAction("&Open", this);
     openAct->setShortcuts(QKeySequence::Open);
-    openAct->setStatusTip(tr("Open a file"));
+    openAct->setStatusTip("Open a file");
     connect(openAct, &QAction::triggered, this, &MainWindow::open);
 
-    saveAct = new QAction(tr("&Save"), this);
+    saveAct = new QAction("&Save", this);
     saveAct->setShortcuts(QKeySequence::Save);
-    saveAct->setStatusTip(tr("Save a file"));
+    saveAct->setStatusTip("Save a file");
     connect(saveAct, &QAction::triggered, this, &MainWindow::save);
 
-    exitAct = new QAction(tr("&Exit"), this);
+    exitAct = new QAction("&Exit", this);
     exitAct->setShortcuts(QKeySequence::Close);
-    exitAct->setStatusTip(tr("Exit from the program"));
-    connect(exitAct, &QAction::triggered, this, &MainWindow::exit);
+    exitAct->setStatusTip("Exit from the program");
+    connect(exitAct, &QAction::triggered, this, &MainWindow::close);
 }
 
 void MainWindow::createMenus()
 {
-    fileMenu = menuBar()->addMenu(tr("&File"));
+    fileMenu = menuBar()->addMenu("&File");
+    fileMenu->addAction(newAct);
     fileMenu->addAction(openAct);
     fileMenu->addAction(saveAct);
     fileMenu->addSeparator();
@@ -64,20 +70,16 @@ void MainWindow::createMenus()
 
 void MainWindow::open()
 {
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Open topology"), "/home", tr("Topology (*.msk *.MSK)"));
+    QString fileName = QFileDialog::getOpenFileName(this, "Open topology", "/home", "Topology (*.msk *.MSK)");
 
     m_codeEditor->readFile(fileName);
-    setWindowTitle(tr("MSK Viewer and Editor - ") + fileName);
+
+    setWindowTitle("MSK Viewer and Editor - " + fileName);
 };
 
 void MainWindow::save()
 {
-    QString fileName = QFileDialog::getSaveFileName(this, tr("Open topology"), "/home", tr("Topology (*.msk *.MSK)"));
+    QString fileName = QFileDialog::getSaveFileName(this, "Open topology", "/home", "Topology (*.msk *.MSK)");
 
     m_codeEditor->writeFile(fileName);
-};
-
-void MainWindow::exit()
-{
-    close();
 };

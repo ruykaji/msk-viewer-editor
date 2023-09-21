@@ -11,7 +11,7 @@
 class Parser {
 public:
     std::shared_ptr<Node> pt {};
-    std::set<std::shared_ptr<Rect>> ast {};
+    std::vector<std::shared_ptr<Rect>> ast {};
 
     Parser();
     ~Parser() = default;

@@ -9,11 +9,11 @@ CodeEditorWidget::CodeEditorWidget(Lexer* t_lexer, Parser* t_parser, QWidget* t_
     , QPlainTextEdit(t_parent)
 {
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    setMinimumWidth(200);
+    setMinimumWidth(300);
 
     auto palette = QPalette();
 
-    palette.setColor(QPalette::Base, QColor(42, 47, 59));
+    palette.setColor(QPalette::Base, QColor(32, 37, 49));
     palette.setColor(QPalette::Text, Qt::white);
 
     setPalette(palette);
@@ -47,12 +47,20 @@ void CodeEditorWidget::deepMakeText(QTextCursor& t_textCursor, QTextCharFormat& 
                     case TokenKind::RIGHT_BRACE:
                         t_formater.setForeground(QBrush(QColor(50, 144, 237)));
                         break;
+                    case TokenKind::NUMBER: {
+                        t_formater.setForeground(QBrush(QColor(50, 244, 137)));
+                        break;
+                    }
+                    case TokenKind::STRING: {
+                        t_formater.setForeground(QBrush(QColor(250, 144, 137)));
+                        break;
+                    }
                     default:
                         t_formater.setForeground(QBrush(Qt::white));
                         break;
                     }
                 } else {
-                    t_formater.setForeground(QBrush(Qt::white));
+                    t_formater.setForeground(QBrush(QColor(Qt::white)));
                 }
 
                 t_textCursor.insertText(QString::fromStdString(node->literal), t_formater);
@@ -84,7 +92,7 @@ void CodeEditorWidget::readFile(const QString& t_fileName)
 
         auto formater = QTextCharFormat();
 
-        formater.setFontPointSize(12);
+        formater.setFontPointSize(14);
 
         uint16_t line {};
 
@@ -112,29 +120,32 @@ void CodeEditorWidget::writeFile(const QString& t_fileName)
 void CodeEditorWidget::writeText()
 {
     auto __document = document();
-    auto __textCursor = textCursor();
     auto file = __document->toPlainText().toStdString();
-    auto cursorPosition = __textCursor.position();
 
-    __document->blockSignals(true);
-    __document->clear();
-    __textCursor.setPosition(0);
+    if (!file.empty()) {
+        auto __textCursor = textCursor();
+        auto cursorPosition = __textCursor.position();
 
-    m_parser->makePT(m_lexer->tokenize(file));
-    m_parser->makeAST();
+        __document->blockSignals(true);
+        __document->clear();
+        __textCursor.setPosition(0);
 
-    auto formater = QTextCharFormat();
+        m_parser->makePT(m_lexer->tokenize(file));
+        m_parser->makeAST();
 
-    formater.setFontPointSize(12);
+        auto formater = QTextCharFormat();
 
-    m_line = 0;
+        formater.setFontPointSize(12);
 
-    deepMakeText(__textCursor, formater, m_line, m_parser->pt);
+        m_line = 0;
 
-    __textCursor.setPosition(cursorPosition > __textCursor.position() ? __textCursor.position() : cursorPosition);
-    setTextCursor(__textCursor);
+        deepMakeText(__textCursor, formater, m_line, m_parser->pt);
 
-    __document->blockSignals(false);
+        __textCursor.setPosition(cursorPosition > __textCursor.position() ? __textCursor.position() : cursorPosition);
+        setTextCursor(__textCursor);
+
+        __document->blockSignals(false);
+    }
 }
 
 void CodeEditorWidget::newRect()

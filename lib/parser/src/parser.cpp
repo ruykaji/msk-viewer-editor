@@ -244,6 +244,10 @@ void Parser::addRECNode(const int16_t& t_left, const int16_t& t_top, const int16
     pt->child.emplace_back(node);
 
     makeASTREC(node);
+
+    std::sort(ast.begin(), ast.end(), [](auto& el1, auto el2) {
+        return static_cast<uint16_t>(el1->material) < static_cast<uint16_t>(el2->material);
+    });
 }
 
 /*Abstract syntax tree methods*/
@@ -262,6 +266,10 @@ void Parser::makeAST()
             }
         }
     }
+
+    std::sort(ast.begin(), ast.end(), [](auto& el1, auto el2) {
+        return static_cast<uint16_t>(el1->material) < static_cast<uint16_t>(el2->material);
+    });
 }
 
 void Parser::makeASTREC(const std::shared_ptr<Node>& t_parent)
@@ -329,9 +337,11 @@ void Parser::makeASTREC(const std::shared_ptr<Node>& t_parent)
             material = Rect::Material::V5;
         }
 
-        auto rect = std::make_shared<Rect>(numericArgs[0], numericArgs[1], numericArgs[2], numericArgs[3], material);
-        rect->source = t_parent;
+        if (material != Rect::Material::None) {
+            auto rect = std::make_shared<Rect>(numericArgs[0], numericArgs[1], numericArgs[2], numericArgs[3], material);
+            rect->source = t_parent;
 
-        ast.insert(rect);
+            ast.emplace_back(rect);
+        }
     }
 }

@@ -41,17 +41,12 @@ struct Rect {
     Rect() = default;
     ~Rect() = default;
 
-    Rect(int16_t& t_left, int16_t& t_top, int16_t& width, int16_t& t_height, Material& t_material)
+    Rect(const int16_t& t_left, const int16_t& t_top, const int16_t& width, const int16_t& t_height, const Material& t_material)
         : left(t_left)
         , top(t_top)
         , width(width)
         , height(t_height)
         , material(t_material) {};
-
-    friend bool operator<(const Rect& t_left, const Rect& t_right)
-    {
-        return static_cast<uint16_t>(t_left.material) < static_cast<uint16_t>(t_right.material);
-    };
 };
 
 #endif
