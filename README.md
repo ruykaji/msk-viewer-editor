@@ -2,7 +2,7 @@
 
 Simple viewer and editor of msk files made using C++ and Qt. 
 
-![preview]("./doc/image.jpg)
+![preview](./doc/image.jpg)
 
 ## Features
 
