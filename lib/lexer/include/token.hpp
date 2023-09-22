@@ -4,6 +4,7 @@
 enum class TokenKind {
     NONE,
     UNDEFINED,
+    NEW_LINE,
 
     // Single one tokens.
     LEFT_BRACE,
@@ -15,6 +16,9 @@ enum class TokenKind {
     STRING,
 
     // Keywords.
+    HELP,
+    VERSION,
+    FIG,
     REC,
 
     END_OF_FILE

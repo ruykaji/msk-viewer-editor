@@ -24,19 +24,38 @@ CodeEditorWidget::CodeEditorWidget(Lexer* t_lexer, Parser* t_parser, QWidget* t_
 void CodeEditorWidget::deepMakeText(QTextCursor& t_textCursor, QTextCharFormat& t_formater, uint16_t& t_line, const std::shared_ptr<Node>& t_iterator)
 {
     if (t_iterator->kind != NodeKind::END_OF_PROGRAM) {
-        for (auto& child : t_iterator->child) {
-            if (child->kind == NodeKind::TERMINAL) {
-                auto node = std::static_pointer_cast<TerminalNode>(child);
+        if (t_iterator->kind == NodeKind::STATEMENT) {
+            auto statement = std::static_pointer_cast<StatementNode>(t_iterator);
 
-                if (t_iterator->kind == NodeKind::STATEMENT) {
+            switch (statement->stmKind) {
+            case StatementKind::VERSION:
+            case StatementKind::FIG: {
+                for (auto& child : t_iterator->child) {
+                    auto node = std::static_pointer_cast<TerminalNode>(child);
+
+                    switch (node->kind) {
+                    case TokenKind::VERSION:
+                    case TokenKind::FIG: {
+                        t_formater.setForeground(QBrush(QColor(50, 172, 237)));
+                        break;
+                    }
+                    default:
+                        t_formater.setForeground(QBrush(Qt::white));
+                        break;
+                    }
+
+                    t_textCursor.insertText(QString::fromStdString(node->literal), t_formater);
+                }
+                break;
+            }
+            case StatementKind::REC_CALL: {
+                for (auto& child : t_iterator->child) {
+                    auto node = std::static_pointer_cast<TerminalNode>(child);
+
                     if (child->isError) {
                         t_formater.setUnderlineStyle(QTextCharFormat::WaveUnderline);
                         t_formater.setUnderlineColor(Qt::red);
                         t_formater.setToolTip(QString::fromStdString(child->message));
-                    } else {
-                        t_formater.setUnderlineStyle(QTextCharFormat::NoUnderline);
-                        t_formater.setUnderlineColor(Qt::transparent);
-                        t_formater.setToolTip(QString(""));
                     }
 
                     switch (node->kind) {
@@ -59,14 +78,41 @@ void CodeEditorWidget::deepMakeText(QTextCursor& t_textCursor, QTextCharFormat& 
                         t_formater.setForeground(QBrush(Qt::white));
                         break;
                     }
-                } else {
-                    t_formater.setForeground(QBrush(QColor(Qt::white)));
+
+                    t_textCursor.insertText(QString::fromStdString(node->literal), t_formater);
+
+                    if (child->isError) {
+                        t_formater.setUnderlineStyle(QTextCharFormat::NoUnderline);
+                        t_formater.setUnderlineColor(Qt::transparent);
+                        t_formater.setToolTip(QString(""));
+                    }
+                }
+                break;
+            }
+            case StatementKind::HELP: {
+                for (auto& child : t_iterator->child) {
+                    auto node = std::static_pointer_cast<TerminalNode>(child);
+                    t_formater.setForeground(QBrush(QColor(50, 255, 50)));
+                    t_formater.setFontItalic(true);
+                    t_textCursor.insertText(QString::fromStdString(node->literal), t_formater);
                 }
 
-                t_textCursor.insertText(QString::fromStdString(node->literal), t_formater);
+                t_formater.setFontItalic(false);
 
-            } else if (child->kind == NodeKind::STATEMENT) {
-                deepMakeText(t_textCursor, t_formater, t_line, child);
+                break;
+            }
+            default:
+                break;
+            }
+        } else {
+            for (auto& child : t_iterator->child) {
+                if (child->kind == NodeKind::STATEMENT) {
+                    deepMakeText(t_textCursor, t_formater, t_line, child);
+                } else if (child->kind != NodeKind::END_OF_PROGRAM) {
+                    auto node = std::static_pointer_cast<TerminalNode>(child);
+                    t_formater.setForeground(QBrush(Qt::white));
+                    t_textCursor.insertText(QString::fromStdString(node->literal), t_formater);
+                }
             }
         }
     }

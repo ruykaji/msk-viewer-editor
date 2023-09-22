@@ -98,7 +98,7 @@ void ViewerWidget::drawCustomRect(QPainter* t_painter)
 
         t_painter->setPen(QPen(QColor(Qt::white), 1.0 / m_currentScale));
 
-        auto textWidth = QString::number(abs(rect.height())) + "-LW";
+        auto textWidth = QString::number(abs(rect.width())) + "-LW";
         auto textHeight = QString::number(abs(rect.height())) + "-LH";
 
         if (rect.width() > 0 && rect.height() > 0) {

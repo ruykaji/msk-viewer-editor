@@ -40,6 +40,28 @@ void Parser::makePT(const std::vector<Token>& t_tokens)
             makePTREC(node, tokensIterator);
             break;
         }
+        case TokenKind::VERSION: {
+            auto node = std::make_shared<StatementNode>(StatementKind::VERSION);
+            pt->child.emplace_back(node);
+            node->child.emplace_back(std::make_shared<TerminalNode>(*tokensIterator++));
+            break;
+        }
+        case TokenKind::FIG: {
+            auto node = std::make_shared<StatementNode>(StatementKind::FIG);
+            pt->child.emplace_back(node);
+            node->child.emplace_back(std::make_shared<TerminalNode>(*tokensIterator++));
+            break;
+        }
+        case TokenKind::HELP: {
+            auto node = std::make_shared<StatementNode>(StatementKind::HELP);
+            pt->child.emplace_back(node);
+            node->child.emplace_back(std::make_shared<TerminalNode>(*tokensIterator++));
+
+            while (tokensIterator->kind != TokenKind::NEW_LINE && tokensIterator->kind != TokenKind::END_OF_FILE) {
+                node->child.emplace_back(std::make_shared<TerminalNode>(*tokensIterator++));
+            }
+            break;
+        }
         default: {
             pt->child.emplace_back(std::make_shared<TerminalNode>(*tokensIterator++));
             break;

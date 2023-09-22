@@ -38,15 +38,18 @@ struct TerminalNode : public Node {
 };
 
 enum class StatementKind {
+    HELP,
+    VERSION,
+    FIG,
     REC_CALL,
 };
 
 struct StatementNode : public Node {
-    StatementKind kind {};
+    StatementKind stmKind {};
 
     StatementNode(const StatementKind& t_kind)
         : Node(NodeKind::STATEMENT)
-        , kind(t_kind) {};
+        , stmKind(t_kind) {};
 };
 
 #endif

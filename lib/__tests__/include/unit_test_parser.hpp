@@ -57,6 +57,8 @@ TEST_CASE("Parser tree should contain enough information to recreate original te
 
     auto tokens = lexer.tokenize(file);
 
+    parser.makePT(tokens);
+
     uint16_t line {};
 
     deep(line, newFile, parser.pt);
