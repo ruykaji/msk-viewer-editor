@@ -13,11 +13,10 @@ Simple viewer and editor of msk files made using C++ and Qt.
 
 ## Build project
 
-[bash]
 ```
 git clone https://github.com/ruykaji/msk-viewer-editor.git
 
 cd msk-viewer-editor
 
-cmake --build
+cmake --build .
 ```
